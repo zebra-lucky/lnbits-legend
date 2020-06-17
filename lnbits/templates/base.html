@@ -49,65 +49,63 @@
             >
           </q-badge>
           {% endblock %}
-          <q-btn flat @click="loginDialog.show = true">Login/Join</q-btn
-          >
+          <q-btn flat @click="loginDialog.show = true">Login/Join</q-btn>
 
-  <q-dialog v-model="loginDialog.show" position="top">
-    <q-card class="q-pa-lg q-pt-xl" style="width:30%;">
-      <q-form @submit="sendloginFormData" class="q-gutter-md">
-        
-        <q-input
-          filled
-          dense
-          v-model.trim="loginDialog.data.email"
-          type="email"
-          label="Email "
-        ></q-input>
-      <q-input
-          filled
-          dense
-          v-model.trim="loginDialog.data.password"
-          type="password"
-          label="Password "
-        ></q-input>
+          <q-dialog v-model="loginDialog.show" position="top">
+            <q-card class="q-pa-lg q-pt-xl" style="width: 30%;">
+              <q-form @submit="sendloginFormData" class="q-gutter-md">
+                <q-input
+                  filled
+                  dense
+                  v-model.trim="loginDialog.data.email"
+                  type="email"
+                  label="Email "
+                ></q-input>
+                <q-input
+                  filled
+                  dense
+                  v-model.trim="loginDialog.data.password"
+                  type="password"
+                  label="Password "
+                ></q-input>
 
-         <q-list>
-          <q-item tag="label" class="rounded-borders">
-            <q-item-section avatar>
-              <q-checkbox
-                v-model="loginDialog.data.include_wallets"
-                color="deep-purple"
-              ></q-checkbox>
-            </q-item-section>
-            <q-item-section>
-              <q-item-label
-                >Add the current open instawallets to your account</q-item-label
-              >
-              <q-item-label caption
-                >Recommended, for moving all the currently open wallets in this page (if any) to your logged in account</q-item-label
-              >
-            </q-item-section>
-          </q-item>
-        </q-list>
- 
-        <div class="row q-mt-lg">
+                <q-list>
+                  <q-item tag="label" class="rounded-borders">
+                    <q-item-section avatar>
+                      <q-checkbox
+                        v-model="loginDialog.data.include_wallets"
+                        color="deep-purple"
+                      ></q-checkbox>
+                    </q-item-section>
+                    <q-item-section>
+                      <q-item-label
+                        >Add the current open instawallets to your
+                        account</q-item-label
+                      >
+                      <q-item-label caption
+                        >Recommended, for moving all the currently open wallets
+                        in this page (if any) to your logged in
+                        account</q-item-label
+                      >
+                    </q-item-section>
+                  </q-item>
+                </q-list>
 
-          <q-btn
-            unelevated
-            color="deep-purple"
-            :disable="loginDialog.data.email == null || loginDialog.data.password == null"
-            type="submit"
-            >Login/Join</q-btn
-          >
-          <q-btn v-close-popup flat color="grey" class="q-ml-auto"
-            >Cancel</q-btn
-          >
-        </div>
-      </q-form>
-    </q-card>
-  </q-dialog>
-
-
+                <div class="row q-mt-lg">
+                  <q-btn
+                    unelevated
+                    color="deep-purple"
+                    :disable="loginDialog.data.email == null || loginDialog.data.password == null"
+                    type="submit"
+                    >Login/Join</q-btn
+                  >
+                  <q-btn v-close-popup flat color="grey" class="q-ml-auto"
+                    >Cancel</q-btn
+                  >
+                </div>
+              </q-form>
+            </q-card>
+          </q-dialog>
 
           <q-btn
             dense

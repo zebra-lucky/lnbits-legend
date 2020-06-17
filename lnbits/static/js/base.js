@@ -161,9 +161,7 @@ var LNbits = {
         return data
       }
     },
-    sendLogin: function(){
-
-    },
+    sendLogin: function () {},
     exportCSV: function (columns, data) {
       var wrapCsvValue = function (val, formatFn) {
         var formatted = formatFn !== void 0 ? formatFn(val) : val
