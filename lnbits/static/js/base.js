@@ -161,6 +161,9 @@ var LNbits = {
         return data
       }
     },
+    sendLogin: function(){
+
+    },
     exportCSV: function (columns, data) {
       var wrapCsvValue = function (val, formatFn) {
         var formatted = formatFn !== void 0 ? formatFn(val) : val
@@ -214,6 +217,10 @@ var LNbits = {
 var windowMixin = {
   data: function () {
     return {
+      loginDialog: {
+        show: false,
+        data: {include_wallets: true}
+      },
       g: {
         visibleDrawer: false,
         extensions: [],
