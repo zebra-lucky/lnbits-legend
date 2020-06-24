@@ -1,6 +1,6 @@
 {
-  "name": "LNURLw",
-  "short_description": "Make LNURL withdraw links",
-  "icon": "crop_free",
-  "contributors": ["arcbtc", "eillarra"]
+	"name": "LNURLw",
+	"short_description": "Vouchers/faucets/links",
+	"icon": "crop_free",
+	"contributors": ["arcbtc", "eillarra"]
 }

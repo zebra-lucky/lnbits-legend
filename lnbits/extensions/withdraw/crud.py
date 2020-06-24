@@ -51,14 +51,22 @@ def create_withdraw_link(
             ),
         )
 
-    return get_withdraw_link(link_id)
+    return get_withdraw_link(link_id, 0)
 
 
-def get_withdraw_link(link_id: str) -> Optional[WithdrawLink]:
+def get_withdraw_link(link_id: str, unique_hash_int: int) -> Optional[WithdrawLink]:
     with open_ext_db("withdraw") as db:
         row = db.fetchone("SELECT * FROM withdraw_links WHERE id = ?", (link_id,))
-
-    return WithdrawLink.from_row(row) if row else None
+    withdraw = WithdrawLink.from_row(row) if row else None
+    if row["is_unique"] == 0:
+        return withdraw
+    if withdraw == None:
+        return withdraw
+    link = []
+    for item in row:
+        link.append(item) 
+    link[12] = unique_hash_int
+    return WithdrawLink._make(link)
 
 
 def get_withdraw_link_by_hash(unique_hash: str) -> Optional[WithdrawLink]:
@@ -66,6 +74,7 @@ def get_withdraw_link_by_hash(unique_hash: str) -> Optional[WithdrawLink]:
         row = db.fetchone("SELECT * FROM withdraw_links WHERE unique_hash = ?", (unique_hash,))
 
     return WithdrawLink.from_row(row) if row else None
+
 
 
 def get_withdraw_links(wallet_ids: Union[str, List[str]]) -> List[WithdrawLink]:
@@ -77,7 +86,6 @@ def get_withdraw_links(wallet_ids: Union[str, List[str]]) -> List[WithdrawLink]:
         rows = db.fetchall(f"SELECT * FROM withdraw_links WHERE wallet IN ({q})", (*wallet_ids,))
 
     return [WithdrawLink.from_row(row) for row in rows]
-
 
 def update_withdraw_link(link_id: str, **kwargs) -> Optional[WithdrawLink]:
     q = ", ".join([f"{field[0]} = ?" for field in kwargs.items()])

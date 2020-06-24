@@ -42,7 +42,7 @@ def api_links():
 @withdraw_ext.route("/api/v1/links/<link_id>", methods=["GET"])
 @api_check_wallet_key("invoice")
 def api_link_retrieve(link_id):
-    link = get_withdraw_link(link_id)
+    link = get_withdraw_link(link_id, 0)
 
     if not link:
         return jsonify({"message": "Withdraw link does not exist."}), HTTPStatus.NOT_FOUND
@@ -77,7 +77,7 @@ def api_link_create_or_update(link_id=None):
         return jsonify({"message": "Insufficient balance."}), HTTPStatus.FORBIDDEN
 
     if link_id:
-        link = get_withdraw_link(link_id)
+        link = get_withdraw_link(link_id, 0)
 
         if not link:
             return jsonify({"message": "Withdraw link does not exist."}), HTTPStatus.NOT_FOUND
@@ -95,7 +95,7 @@ def api_link_create_or_update(link_id=None):
 @withdraw_ext.route("/api/v1/links/<link_id>", methods=["DELETE"])
 @api_check_wallet_key("admin")
 def api_link_delete(link_id):
-    link = get_withdraw_link(link_id)
+    link = get_withdraw_link(link_id, 0)
 
     if not link:
         return jsonify({"message": "Withdraw link does not exist."}), HTTPStatus.NOT_FOUND
@@ -120,9 +120,9 @@ def api_lnurl_response(unique_hash):
     return jsonify(link.lnurl_response.dict()), HTTPStatus.OK
 
 
-@withdraw_ext.route("/api/v1/lnurl/cb/<unique_hash>", methods=["GET"])
-def api_lnurl_callback(unique_hash):
-    link = get_withdraw_link_by_hash(unique_hash)
+@withdraw_ext.route("/api/v1/lnurl/cb/<link_id>", methods=["GET"])
+def api_lnurl_callback(link_id):
+    link = get_withdraw_link_by_hash(link_id)
     k1 = request.args.get("k1", type=str)
     payment_request = request.args.get("pr", type=str)
     now = int(datetime.now().timestamp())
@@ -148,9 +148,9 @@ def api_lnurl_callback(unique_hash):
         }
 
         if link.is_unique:
-            changes["unique_hash"] = urlsafe_short_hash()
+            changes["unique_hash"] = link.unique_hash[:-1]
 
-        update_withdraw_link(link.id, **changes)
+        update_withdraw_link(link_id, **changes)
 
     except ValueError as e:
         return jsonify({"status": "ERROR", "reason": str(e)}), HTTPStatus.OK

@@ -16,13 +16,20 @@ def index():
 
 @withdraw_ext.route("/<link_id>")
 def display(link_id):
-    link = get_withdraw_link(link_id) or abort(HTTPStatus.NOT_FOUND, "Withdraw link does not exist.")
+    link = get_withdraw_link(link_id, 0) or abort(HTTPStatus.NOT_FOUND, "Withdraw link does not exist.")
 
     return render_template("withdraw/display.html", link=link)
 
 
 @withdraw_ext.route("/print/<link_id>")
 def print_qr(link_id):
-    link = get_withdraw_link(link_id) or abort(HTTPStatus.NOT_FOUND, "Withdraw link does not exist.")
+    links = []
+    link = get_withdraw_link(link_id, 0) or abort(HTTPStatus.NOT_FOUND, "Withdraw link does not exist.")
+    if link.is_unique == True:
+        unique_hashs = link.unique_hash.split(",")
+        count = 1
+        for item in unique_hashs:
+            links.append(get_withdraw_link(link_id, count))
+            count + 1
 
-    return render_template("withdraw/print_qr.html", link=link)
+    return render_template("withdraw/print_qr.html", link=link, unique=True, links=links)
