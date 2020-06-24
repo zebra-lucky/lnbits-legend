@@ -17,6 +17,14 @@ def create_withdraw_link(
     wait_time: int,
     is_unique: bool,
 ) -> WithdrawLink:
+    if is_unique:
+        uniques = ""
+        for i in range(uses):
+            uniques += "," + urlsafe_short_hash()
+        uniques = uniques[1:]
+    else:
+        uniques = urlsafe_short_hash()
+
     with open_ext_db("withdraw") as db:
         link_id = urlsafe_short_hash()
         db.execute(
@@ -45,7 +53,7 @@ def create_withdraw_link(
                 uses,
                 wait_time,
                 int(is_unique),
-                urlsafe_short_hash(),
+                uniques,
                 urlsafe_short_hash(),
                 int(datetime.now().timestamp()) + wait_time,
             ),
@@ -65,13 +73,15 @@ def get_withdraw_link(link_id: str, unique_hash_int: int) -> Optional[WithdrawLi
     link = []
     for item in row:
         link.append(item) 
-    link[12] = unique_hash_int
+    hashes = link[8].split(",")
+    link[8] = hashes[unique_hash_int]
+    print(link[8])
+    print(unique_hash_int)
     return WithdrawLink._make(link)
-
 
 def get_withdraw_link_by_hash(unique_hash: str) -> Optional[WithdrawLink]:
     with open_ext_db("withdraw") as db:
-        row = db.fetchone("SELECT * FROM withdraw_links WHERE unique_hash = ?", (unique_hash,))
+        row = db.fetchone("SELECT * FROM withdraw_links WHERE unique_hash LIKE = ?", (unique_hash,))
 
     return WithdrawLink.from_row(row) if row else None
 
@@ -88,13 +98,23 @@ def get_withdraw_links(wallet_ids: Union[str, List[str]]) -> List[WithdrawLink]:
     return [WithdrawLink.from_row(row) for row in rows]
 
 def update_withdraw_link(link_id: str, **kwargs) -> Optional[WithdrawLink]:
+    
+    with open_ext_db("withdraw") as db:
+        row = db.fetchone("SELECT * FROM withdraw_links WHERE id = ?", (link_id,))
+    if kwargs["uses"] != row["uses"] or kwargs["is_unique"] == True and row["is_unique"] == False:
+        uniques = ""
+        for i in range(kwargs["uses"]):
+            uniques += "," + urlsafe_short_hash()
+            uniques = uniques[1:]
+            kwargs.update( {'unique_hash' : uniques} )
+            print(kwargs["unique_hash"])
     q = ", ".join([f"{field[0]} = ?" for field in kwargs.items()])
-
     with open_ext_db("withdraw") as db:
         db.execute(f"UPDATE withdraw_links SET {q} WHERE id = ?", (*kwargs.values(), link_id))
         row = db.fetchone("SELECT * FROM withdraw_links WHERE id = ?", (link_id,))
 
     return WithdrawLink.from_row(row) if row else None
+
 
 
 def delete_withdraw_link(link_id: str) -> None:

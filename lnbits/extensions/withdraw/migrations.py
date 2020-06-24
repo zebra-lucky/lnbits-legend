@@ -22,8 +22,7 @@ def m001_initial(db):
             unique_hash TEXT UNIQUE,
             k1 TEXT,
             open_time INTEGER,
-            used INTEGER DEFAULT 0,
-            unique_hash_int INTEGER DEFAULT 0
+            used INTEGER DEFAULT 0
         );
     """)
  

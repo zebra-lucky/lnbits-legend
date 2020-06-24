@@ -1,33 +1,20 @@
 {% extends "print.html" %} {% block page %}
 <div class="row justify-center">
   <div class="col-12 col-sm-8 col-lg-6 text-center">
-    {% if unique %} {% for i in range(links) %}
+    {{links}} {% for linked in links %}
 
     <div class="zimbabwe">
       <div class="qr">
-        <qrcode value="{{ links[i].lnurl }}" :options="{width: 150}"></qrcode>
+        <qrcode value="{{ linked.lnurl }}" :options="{width: 150}"></qrcode>
         <br /><br />
         <strong>{{ SITE_TITLE }}</strong><br />
-        <strong>{{ link.max_withdrawable }} FREE SATS</strong><br />
+        <strong>{{ linked.max_withdrawable }} FREE SATS</strong><br />
         <small>Scan and follow link<br />or use Lightning wallet</small>
       </div>
       <img src="{{ url_for('static', filename='images/note.jpg') }}" />
     </div>
 
-    {% endfor %} {% elif not unique %} {% for i in range(link.uses) %}
-
-    <div class="zimbabwe">
-      <div class="qr">
-        <qrcode value="{{ links.lnurl }}" :options="{width: 150}"></qrcode>
-        <br /><br />
-        <strong>{{ SITE_TITLE }}</strong><br />
-        <strong>{{ link.max_withdrawable }} FREE SATS</strong><br />
-        <small>Scan and follow link<br />or use Lightning wallet</small>
-      </div>
-      <img src="{{ url_for('static', filename='images/note.jpg') }}" />
-    </div>
-
-    {% endfor %} {% endif %}
+    {% endfor %}
   </div>
 </div>
 {% endblock %} {% block styles %}

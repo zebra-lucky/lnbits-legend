@@ -26,10 +26,7 @@ def print_qr(link_id):
     links = []
     link = get_withdraw_link(link_id, 0) or abort(HTTPStatus.NOT_FOUND, "Withdraw link does not exist.")
     if link.is_unique == True:
-        unique_hashs = link.unique_hash.split(",")
-        count = 1
-        for item in unique_hashs:
-            links.append(get_withdraw_link(link_id, count))
-            count + 1
+        for i in range(link.uses):
+            links.append(get_withdraw_link(link_id, i))
 
     return render_template("withdraw/print_qr.html", link=link, unique=True, links=links)

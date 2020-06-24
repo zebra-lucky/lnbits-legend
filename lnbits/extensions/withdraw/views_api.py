@@ -120,9 +120,9 @@ def api_lnurl_response(unique_hash):
     return jsonify(link.lnurl_response.dict()), HTTPStatus.OK
 
 
-@withdraw_ext.route("/api/v1/lnurl/cb/<link_id>", methods=["GET"])
-def api_lnurl_callback(link_id):
-    link = get_withdraw_link_by_hash(link_id)
+@withdraw_ext.route("/api/v1/lnurl/cb/<unique_hash>", methods=["GET"])
+def api_lnurl_callback(unique_hash):
+    link = get_withdraw_link_by_hash(unique_hash)
     k1 = request.args.get("k1", type=str)
     payment_request = request.args.get("pr", type=str)
     now = int(datetime.now().timestamp())
@@ -148,9 +148,11 @@ def api_lnurl_callback(link_id):
         }
 
         if link.is_unique:
-            changes["unique_hash"] = link.unique_hash[:-1]
-
-        update_withdraw_link(link_id, **changes)
+            hashes = link.unique_hash.split(",")
+            hashes.remove(unique_hash)
+            changes["unique_hash"] = ','.join(hashes)
+            
+        update_withdraw_link(link.id, **changes)
 
     except ValueError as e:
         return jsonify({"status": "ERROR", "reason": str(e)}), HTTPStatus.OK

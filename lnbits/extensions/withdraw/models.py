@@ -19,7 +19,6 @@ class WithdrawLink(NamedTuple):
     k1: str
     open_time: int
     used: int
-    unique_hash_int: int
 
     @classmethod
     def from_row(cls, row: Row) -> "WithdrawLink":
@@ -34,9 +33,9 @@ class WithdrawLink(NamedTuple):
     @property
     def lnurl(self) -> Lnurl:
         scheme = "https" if FORCE_HTTPS else None  
-        if self.is_unique == 1:
+        if self.unique_hash.find(","):
             unique_hashs = self.unique_hash.split(",")
-            unique_hash = unique_hashs[- self.unique_hash_int]
+            unique_hash = unique_hashs[0]
         else:
             unique_hash = self.unique_hash
         url = url_for("withdraw.api_lnurl_response", unique_hash=unique_hash, _external=True, _scheme=scheme)
@@ -45,9 +44,9 @@ class WithdrawLink(NamedTuple):
     @property
     def lnurl_response(self) -> LnurlWithdrawResponse:
         scheme = "https" if FORCE_HTTPS else None
-        if self.is_unique == 1:
+        if self.unique_hash.find(","):
             unique_hashs = self.unique_hash.split(",")
-            unique_hash = unique_hashs[- self.unique_hash_int]
+            unique_hash = unique_hashs[0]
         else:
             unique_hash = self.unique_hash
         url = url_for("withdraw.api_lnurl_callback", unique_hash=unique_hash, _external=True, _scheme=scheme)
