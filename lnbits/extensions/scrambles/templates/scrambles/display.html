@@ -1,0 +1,76 @@
+{% extends "public.html" %} {% block page %}
+<div class="row q-col-gutter-md justify-center">
+  <div class="col-12 col-sm-6 col-md-5 col-lg-4">
+    <q-card class="q-pa-lg">
+     <img src="https://i.imgur.com/2heLbCc.png">
+
+     <p>Top-left words: {{ bottomRight }} <br/>
+      Bottom-right words: {{ topLeft }}</p> 
+    </q-card>
+  </div>
+  <div class="col-12 col-sm-6 col-md-5 col-lg-4 q-gutter-y-md">
+      <q-card-section>
+      <q-card class="q-pa-lg q-pt-xl lnbits__dialog-card">
+      <q-form @submit="makePayment" class="q-gutter-md">
+        <q-input
+          filled
+          dense
+          type="number"
+          v-model="payDialog.data.sats"
+          label="amount of sats *"
+        ></q-input>
+        <div class="row q-mt-lg">
+          <q-btn
+            unelevated
+            color="deep-purple"
+            :disable="
+            payDialog.data.sats == null"
+            type="submit"
+            >Fund map</q-btn
+          >
+        </div>
+      </q-form>
+
+    </q-card>
+  </div>
+  <q-dialog v-model="payDialog.show" position="top" @hide="closepayDialog">
+    <q-card class="q-pa-lg q-pt-xl" style="width: 500px">
+
+    </q-card>
+  </q-dialog>
+</div>
+{% endblock %} {% block scripts %}
+<script>
+  Vue.component(VueQrcode.name, VueQrcode)
+
+  new Vue({
+    el: '#vue',
+    mixins: [windowMixin],
+    data: function () {
+      return {
+        here: location.protocol + '//' + location.host,
+        payDialog: {
+        show: false,
+        top_left: "game",
+        bottom_right: "sfbdfs",
+        data: {}
+        },
+      }
+    },
+    methods: {
+      makePayment: function () {
+      var self = this
+      self.payDialog.show = true
+      self.payDialog.data = {}
+    },
+    closepayDialog: function () {
+      var self = this
+      self.payDialog.show = false
+      self.payDialog.data = {}
+    }
+  },
+  created: function () {
+  }
+})
+</script>
+{% endblock %}
