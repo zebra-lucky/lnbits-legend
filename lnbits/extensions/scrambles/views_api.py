@@ -12,7 +12,11 @@ from .crud import (
     get_scrambles_games,
     update_scrambles_game,
     delete_scrambles_game,
+    create_scrambles_funding,
+    get_scrambles_funding,
+    get_scrambles_fundings,
 )
+from ....services import create_invoice
 
 @scrambles_ext.route("/api/v1/games", methods=["GET"])
 @api_check_wallet_key("invoice")
@@ -26,7 +30,7 @@ async def api_games():
 @scrambles_ext.route("/api/v1/games/<game_id>", methods=["GET"])
 @api_check_wallet_key("invoice")
 async def api_game_retrieve(game_id):
-    game = await get_scrambles_game(game_id, 0)
+    game = await get_scrambles_game(game_id)
 
     if not game:
         return jsonify({"message": "scrambles game does not exist."}), HTTPStatus.NOT_FOUND
@@ -75,3 +79,50 @@ async def api_game_delete(game_id):
     await delete_scrambles_game(game_id)
 
     return "", HTTPStatus.NO_CONTENT
+
+
+#####################
+
+
+@scrambles_ext.route("/api/v1/funding/", methods=["POST"])
+@api_validate_post_request(
+    schema={
+        "game_id": {"type": "string", "empty": False, "required": True},
+        "top_left": {"type": "string", "empty": False, "required": True},
+        "bottom_right": {"type": "string", "empty": False, "required": True},
+        "amount": {"type": "integer", "empty": False, "required": True},
+    }
+)
+async def api_game_fund():
+    game = await get_scrambles_game(game_id)
+
+    if not game:
+        return jsonify({"message": "scrambles game does not exist."}), HTTPStatus.NOT_FOUND
+
+    payment_hash, payment_request = await create_invoice(
+        wallet_id=game.wallet,
+        amount=g.data["amount"],
+        memo=memo,
+        description_hash=description_hash,
+        extra=g.data.get("extra"),
+        webhook=g.data.get("webhook"),
+    )
+    
+
+    create_scrambles_funding();
+
+    return jsonify({**game._asdict()}), HTTPStatus.OK
+
+
+@scrambles_ext.route("/api/v1/funding/<funding_id>", methods=["GET"])
+@api_check_wallet_key("invoice")
+async def api_game_check_funding(funding_id):
+    game = await get_scrambles_game(funding_id)
+
+    if not game:
+        return jsonify({"message": "scrambles game does not exist."}), HTTPStatus.NOT_FOUND
+
+    if game.wallet != g.wallet.id:
+        return jsonify({"message": "Not your scrambles game."}), HTTPStatus.FORBIDDEN
+
+    return jsonify({**game._asdict()}), HTTPStatus.OK

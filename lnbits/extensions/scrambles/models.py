@@ -4,7 +4,7 @@ from typing import NamedTuple
 import shortuuid  # type: ignore
 
 
-class scramblesgame(NamedTuple):
+class scramblesGame(NamedTuple):
     id: str
     wallet: str
     title: str
@@ -12,5 +12,19 @@ class scramblesgame(NamedTuple):
     bottom_right: str
 
     @classmethod
-    def from_row(cls, row: Row) -> "scramblesgame":
+    def from_row(cls, row: Row) -> "scramblesGame":
+        return cls(**dict(row))
+
+class scramblesFunding(NamedTuple):
+    id: str
+    scrambles_id: str
+    wallet: str
+    top_left: str
+    bottom_right: str
+    amount: int
+    payment_hash: str
+    confirmed: bool
+
+    @classmethod
+    def from_row(cls, row: Row) -> "scramblesFunding":
         return cls(**dict(row))
