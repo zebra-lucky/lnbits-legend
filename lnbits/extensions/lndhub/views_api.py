@@ -12,7 +12,6 @@ from . import lndhub_ext
 from .decorators import check_wallet
 from .utils import to_buffer, decoded_as_lndhub
 
-
 @lndhub_ext.route("/ext/getinfo", methods=["GET"])
 async def lndhub_getinfo():
     return jsonify({"error": True, "code": 1, "message": "bad auth"})
