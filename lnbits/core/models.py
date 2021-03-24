@@ -127,7 +127,9 @@ class Payment(NamedTuple):
 
     @property
     def is_uncheckable(self) -> bool:
-        return self.checking_id.startswith("temp_") or self.checking_id.startswith("internal_")
+        return self.checking_id.startswith("temp_") or self.checking_id.startswith(
+            "internal_"
+        )
 
     async def set_pending(self, pending: bool) -> None:
         from .crud import update_payment_status
@@ -139,9 +141,9 @@ class Payment(NamedTuple):
             return
 
         if self.is_out:
-            pending = WALLET.get_payment_status(self.checking_id)
+            pending = await WALLET.get_payment_status(self.checking_id)
         else:
-            pending = WALLET.get_invoice_status(self.checking_id)
+            pending = await WALLET.get_invoice_status(self.checking_id)
 
         await self.set_pending(pending.pending)
 

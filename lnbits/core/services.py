@@ -18,7 +18,14 @@ from lnbits.settings import WALLET
 from lnbits.wallets.base import PaymentStatus, PaymentResponse
 
 from . import db
-from .crud import get_wallet, create_payment, delete_payment, check_internal, update_payment_status, get_wallet_payment
+from .crud import (
+    get_wallet,
+    create_payment,
+    delete_payment,
+    check_internal,
+    update_payment_status,
+    get_wallet_payment,
+)
 
 
 async def create_invoice(
@@ -34,7 +41,7 @@ async def create_invoice(
     invoice_memo = None if description_hash else memo
     storeable_memo = memo
 
-    ok, checking_id, payment_request, error_message = WALLET.create_invoice(
+    ok, checking_id, payment_request, error_message = await WALLET.create_invoice(
         amount=amount, memo=invoice_memo, description_hash=description_hash
     )
     if not ok:
@@ -101,7 +108,9 @@ async def pay_invoice(
     internal_checking_id = await check_internal(invoice.payment_hash)
     if internal_checking_id:
         # create a new payment from this wallet
-        await create_payment(checking_id=internal_id, fee=0, pending=False, **payment_kwargs)
+        await create_payment(
+            checking_id=internal_id, fee=0, pending=False, **payment_kwargs
+        )
     else:
         # create a temporary payment here so we can check if
         # the balance is enough in the next step
@@ -130,12 +139,13 @@ async def pay_invoice(
         await internal_invoice_paid.send(internal_checking_id)
     else:
         # actually pay the external invoice
-        payment: PaymentResponse = WALLET.pay_invoice(payment_request)
-        if payment.ok and payment.checking_id:
+        payment: PaymentResponse = await WALLET.pay_invoice(payment_request)
+        if payment.checking_id:
             await create_payment(
                 checking_id=payment.checking_id,
                 fee=payment.fee_msat,
                 preimage=payment.preimage,
+                pending=payment.ok == None,
                 **payment_kwargs,
             )
             await delete_payment(temp_id)
@@ -143,12 +153,16 @@ async def pay_invoice(
         else:
             await delete_payment(temp_id)
             await db.commit()
-            raise Exception(payment.error_message or "Failed to pay_invoice on backend.")
+            raise Exception(
+                payment.error_message or "Failed to pay_invoice on backend."
+            )
 
     return invoice.payment_hash
 
 
-async def redeem_lnurl_withdraw(wallet_id: str, res: LnurlWithdrawResponse, memo: Optional[str] = None) -> None:
+async def redeem_lnurl_withdraw(
+    wallet_id: str, res: LnurlWithdrawResponse, memo: Optional[str] = None
+) -> None:
     _, payment_request = await create_invoice(
         wallet_id=wallet_id,
         amount=res.max_sats,
@@ -159,7 +173,10 @@ async def redeem_lnurl_withdraw(wallet_id: str, res: LnurlWithdrawResponse, memo
     async with httpx.AsyncClient() as client:
         await client.get(
             res.callback.base,
-            params={**res.callback.query_params, **{"k1": res.k1, "pr": payment_request}},
+            params={
+                **res.callback.query_params,
+                **{"k1": res.k1, "pr": payment_request},
+            },
         )
 
 
@@ -239,4 +256,4 @@ async def check_invoice_status(wallet_id: str, payment_hash: str) -> PaymentStat
     if not payment:
         return PaymentStatus(None)
 
-    return WALLET.get_invoice_status(payment.checking_id)
+    return await WALLET.get_invoice_status(payment.checking_id)
