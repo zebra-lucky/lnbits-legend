@@ -53,7 +53,7 @@ async def get_scrambles_games(wallet_ids: Union[str, List[str]]) -> List[scrambl
     return [scramblesGame.from_row(row) for row in rows]
 
 
-async def update_scrambles_game(game_id: str, **kwargs) -> Optional[scramblesgame]:
+async def update_scrambles_game(game_id: str, **kwargs) -> Optional[scramblesGame]:
     q = ", ".join([f"{field[0]} = ?" for field in kwargs.items()])
     await db.execute(f"UPDATE scrambles_game SET {q} WHERE id = ?", (*kwargs.values(), game_id))
     row = await db.fetchone("SELECT * FROM scrambles_game WHERE id = ?", (game_id,))
@@ -77,9 +77,9 @@ async def create_scrambles_funding(
     funding_id = urlsafe_short_hash()
     await db.execute(
         """
-        INSERT INTO scrambles_game (
+        INSERT INTO scrambles_funding (
             id,
-            game_id,
+            scrambles_id,
             wallet,
             top_left,
             bottom_right,
@@ -87,7 +87,7 @@ async def create_scrambles_funding(
             payment_hash,
             confirmed
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (   
             funding_id,
@@ -102,6 +102,7 @@ async def create_scrambles_funding(
     )
     funding = await get_scrambles_funding(funding_id)
     assert funding, "Newly created game couldn't be retrieved"
+    print("funding")
     return funding
 
 async def get_scrambles_funding(funding_id: str) -> Optional[scramblesFunding]:
