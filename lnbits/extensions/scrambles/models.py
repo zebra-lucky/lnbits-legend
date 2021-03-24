@@ -10,6 +10,7 @@ class scramblesGame(NamedTuple):
     title: str
     top_left: str
     bottom_right: str
+    time: int
 
     @classmethod
     def from_row(cls, row: Row) -> "scramblesGame":
@@ -24,6 +25,7 @@ class scramblesFunding(NamedTuple):
     amount: int
     payment_hash: str
     confirmed: bool
+    time: int
 
     @classmethod
     def from_row(cls, row: Row) -> "scramblesFunding":

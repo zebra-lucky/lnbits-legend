@@ -16,7 +16,7 @@ from .crud import (
     get_scrambles_funding,
     get_scrambles_fundings,
 )
-from ....services import create_invoice
+from ...core.services import create_invoice
 
 @scrambles_ext.route("/api/v1/games", methods=["GET"])
 @api_check_wallet_key("invoice")
@@ -60,7 +60,7 @@ async def api_game_create_or_update(game_id=None):
             return jsonify({"message": "Not your scrambles game."}), HTTPStatus.FORBIDDEN
         game = await update_scrambles_game(game_id, **g.data)
     else:
-        game = await create_scrambles_game(wallet_id=g.wallet.id, **g.data)
+        game = await create_scrambles_game(wallet=g.wallet.id, **g.data)
 
     return jsonify({**game._asdict()}), HTTPStatus.OK if game_id else HTTPStatus.CREATED
 
@@ -90,28 +90,31 @@ async def api_game_delete(game_id):
         "game_id": {"type": "string", "empty": False, "required": True},
         "top_left": {"type": "string", "empty": False, "required": True},
         "bottom_right": {"type": "string", "empty": False, "required": True},
-        "amount": {"type": "integer", "empty": False, "required": True},
+        "sats": {"type": "integer", "empty": False, "required": True},
     }
 )
 async def api_game_fund():
-    game = await get_scrambles_game(game_id)
+    game = await get_scrambles_game(g.data["game_id"])
 
     if not game:
         return jsonify({"message": "scrambles game does not exist."}), HTTPStatus.NOT_FOUND
 
     payment_hash, payment_request = await create_invoice(
         wallet_id=game.wallet,
-        amount=g.data["amount"],
-        memo=memo,
-        description_hash=description_hash,
-        extra=g.data.get("extra"),
-        webhook=g.data.get("webhook"),
-    )
+        amount=g.data["sats"],
+        memo="game_id",
+        )
     
+    funding = await create_scrambles_funding(
+        game_id=game.id, 
+        wallet=game.wallet, 
+        top_left=g.data["top_left"], 
+        bottom_right=g.data["bottom_right"], 
+        amount=g.data["sats"], 
+        payment_hash=payment_hash,
+        )
 
-    create_scrambles_funding();
-
-    return jsonify({**game._asdict()}), HTTPStatus.OK
+    return jsonify({**funding._asdict()}), HTTPStatus.OK
 
 
 @scrambles_ext.route("/api/v1/funding/<funding_id>", methods=["GET"])

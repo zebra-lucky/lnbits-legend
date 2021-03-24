@@ -58,17 +58,40 @@
         here: location.protocol + '//' + location.host,
         payDialog: {
         show: false,
-        top_left: "game",
-        bottom_right: "sfbdfs",
-        data: {}
+
+        data: {
+        game_id: "",
+        top_left: "slush fortune raw problem",
+        bottom_right: "slush edit ticket allow",
+        sats: 100,
+        }
         },
       }
     },
     methods: {
+      getInvoice: function () {
+      var self = this
+      var data = self.payDialog.data
+      LNbits.api
+        .request(
+          'POST',
+          '/scrambles/api/v1/funding/',
+           "whatevs", data
+        )
+        .then(function (response) {
+          self.scramblesgames = response.data.map(function (obj) {
+            return mapscramblesgame(obj)
+          })
+        })
+        .catch(function (error) {
+          clearInterval(self.checker)
+          LNbits.utils.notifyApiError(error)
+        })
+    },
       makePayment: function () {
       var self = this
       self.payDialog.show = true
-      self.payDialog.data = {}
+      self.getInvoice()
     },
     closepayDialog: function () {
       var self = this
@@ -76,6 +99,7 @@
       self.payDialog.data = {}
     },
     wooo: function () {
+      this.payDialog.data.game_id = window.location.pathname.split("/").pop()
       console.log(fromWords(["slush", "edit", "ticket", "allow"]));
 
       var map = L.map('map', {
