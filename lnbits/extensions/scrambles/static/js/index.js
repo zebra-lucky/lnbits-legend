@@ -52,6 +52,7 @@ new Vue({
     }
   },
   computed: {
+
     sortedscramblesgames: function () {
       return this.scramblesgames.sort(function (a, b) {
         return
@@ -59,6 +60,9 @@ new Vue({
     }
   },
   methods: {
+    test: function () {
+      console.log("poo")
+    },
     getscramblesgames: function () {
       var self = this
 
