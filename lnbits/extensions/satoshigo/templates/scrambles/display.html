@@ -1,0 +1,198 @@
+{% extends "public.html" %} {% from "macros.jinja" import window_vars with context
+%}{% block page %}
+<div class="row q-ml-xl">
+
+  <div class="col-md-6">
+    <q-card-section>
+    <q-card class="q-pa-lg">
+    <div id="map" style="width: 100%; height: 300px;"></div>
+     <p>Top-left words: {{ bottomRight }} <br/>
+      Bottom-right words: {{ topLeft }}<br/>{% raw %}
+    <strong style="font-size:30px;">Amount: <b v-text="satsAmount"></b> sats</strong></p> {% endraw %}
+    </q-card>
+  </q-card-section>
+  </div>
+  <div class="col-md-2">
+      <q-card-section>
+      <q-card class="q-pa-lg q-pt-xl lnbits__dialog-card">
+
+        <q-form
+        @submit="makePayment"
+        class="q-gutter-md"
+      >
+        <q-input
+          filled
+          dense
+          type="number"
+          v-model="payDialog.data.sats"
+          label="amount of sats *"
+        ></q-input>
+        <div class="row q-mt-lg">
+          <q-btn
+            unelevated
+            color="deep-purple"
+            type="submit"
+            >Fund map</q-btn
+          >
+        </div>
+      </q-form>
+      
+    </q-card>
+  </q-card-section>
+  </div>
+  <q-dialog v-model="payDialog.show" persistent transition-show="scale" position="top" @hide="closepayDialog">
+    <q-card class="q-pa-lg q-pt-xl" style="width: 500px">
+      <q-card-section class="q-pa-none">
+        <div class="text-center">
+          <a :href="'lightning://' + this.payDialog.data.req">
+            <q-responsive :ratio="1" class="q-mx-md">
+              <qrcode
+                :value="this.payDialog.data.req"
+                :options="{width: 800}"
+                class="rounded-borders"
+              ></qrcode>
+            </q-responsive>
+          </a>
+        </div>
+        <div class="row q-mt-lg">
+          <q-btn outline color="grey" @click="copyReq"
+            >Copy invoice</q-btn
+          >
+        </div>
+      </q-card-section>
+    </q-card>
+  </q-dialog>
+</div>
+{% endblock %} {% block scripts %}
+<script src="/satoshigo/static/js/test.js"></script>
+<link rel="stylesheet" href="/satoshigo/static/css/leaflet.css" />
+<script src="/satoshigo/static/js/leaflet.js"></script>
+<script src="/satoshigo/static/js/main.js"></script>
+<style>
+  .leaflet-control-attribution{
+    display:none
+  }
+</style>
+<script>
+
+
+  Vue.component(VueQrcode.name, VueQrcode)
+  
+  new Vue({
+    el: '#vue',
+    mixins: [windowMixin],
+    data: function () {
+      return {
+        satsAmount: parseInt('{{ gameAmount }}'),
+        here: location.protocol + '//' + location.host,
+        payDialog: {
+        show: false,
+        data: {
+        req: "",
+        game_id: "",
+        top_left: "slush fortune raw problem",
+        bottom_right: "slush edit ticket allow",
+        sats: 100,
+        }
+        },
+      }
+    },
+    methods: {
+      copyReq: function () {
+        this.copyText(this.payDialog.data.req)
+      },
+      getInvoice: function () {
+      var self = this
+      self.payDialog.data.sats = parseInt(self.payDialog.data.sats)
+      var data = self.payDialog.data
+      self.$q.notify({
+        spinner: true,
+        message: 'Please wait...',
+        timeout: 2000
+      })
+      LNbits.api
+        .request(
+          'POST',
+          '/satoshigo/api/v1/funding/',
+           "whatevs", data
+        )
+        .then(function (response) {
+          console.log(response.data)
+          self.payDialog.data.req = response.data[1]
+          self.payDialog.show = true
+          var interv = setInterval(function(){ 
+                LNbits.api
+                .request(
+                  'GET',
+                  '/satoshigo/api/v1/funding/' + response.data[0].satoshigo_id + '/' + response.data[0].payment_hash,
+                  "whatevs"
+                )
+                .then(function (response) {
+                  console.log(response.data.paid)
+                  if(response.data.paid == true){
+                    self.$q.notify({
+                     type: 'positive',
+                     message: `Funded, thanks!!!`
+                     })
+                     self.payDialog.show = false
+                     self.satsAmount = parseInt(self.satsAmount) + parseInt(self.payDialog.data.sats)
+                     clearInterval(interv)
+                  }
+                })
+                .catch(function (error) {
+                  clearInterval(self.checker)
+                  LNbits.utils.notifyApiError(error)
+                })
+          }, 3000);
+        })
+        .catch(function (error) {
+          clearInterval(self.checker)
+          LNbits.utils.notifyApiError(error)
+        })
+    },
+      makePayment: function () {
+      var self = this
+      self.getInvoice()
+    },
+    closepayDialog: function () {
+      var self = this
+      self.payDialog.show = false
+      self.payDialog.data = {}
+    },
+    wooo: function () {
+      this.payDialog.data.game_id = window.location.pathname.split("/").pop()
+      console.log(fromWords(["slush", "edit", "ticket", "allow"]));
+
+      var L = window.L
+var where39 = window.where39
+
+var map = L.map('map').fitWorld()
+
+  function getUrlVars() {
+    var vars = {};
+    var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
+        vars[key] = value;
+    });
+    return vars;
+   }
+
+L.tileLayer(
+  'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+  {
+    zoomSnap: 2,
+    maxZoom: 18,
+    attribution:
+    "attrib",
+    id: 'mapbox/streets-v11'
+  }
+).addTo(map)
+}
+    },
+  created: function () {
+    this.wooo()
+    console.log(this.satsAmount)
+  }
+})
+</script>
+
+{% endblock %}

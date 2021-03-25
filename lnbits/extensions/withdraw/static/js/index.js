@@ -76,14 +76,13 @@ new Vue({
       }
     }
   },
-  computed: {
+
+  methods: {
     sortedWithdrawLinks: function () {
       return this.withdrawLinks.sort(function (a, b) {
         return b.uses_left - a.uses_left
       })
-    }
-  },
-  methods: {
+    },
     getWithdrawLinks: function () {
       var self = this
 

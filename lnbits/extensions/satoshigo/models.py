@@ -4,21 +4,25 @@ from typing import NamedTuple
 import shortuuid  # type: ignore
 
 
-class scramblesGame(NamedTuple):
+class satoshigoGame(NamedTuple):
     id: str
     wallet: str
+    wallet_key: str
     title: str
     top_left: str
     bottom_right: str
+    coins: str
+    render_pin: int
+    amount: int
     time: int
 
     @classmethod
-    def from_row(cls, row: Row) -> "scramblesGame":
+    def from_row(cls, row: Row) -> "satoshigoGame":
         return cls(**dict(row))
 
-class scramblesFunding(NamedTuple):
+class satoshigoFunding(NamedTuple):
     id: str
-    scrambles_id: str
+    satoshigo_id: str
     wallet: str
     top_left: str
     bottom_right: str
@@ -28,5 +32,5 @@ class scramblesFunding(NamedTuple):
     time: int
 
     @classmethod
-    def from_row(cls, row: Row) -> "scramblesFunding":
+    def from_row(cls, row: Row) -> "satoshigoFunding":
         return cls(**dict(row))

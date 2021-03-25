@@ -8,18 +8,18 @@
     group="api"
     dense
     expand-separator
-    label="List scrambles games"
+    label="List satoshigo games"
   >
     <q-card>
       <q-card-section>
-        <code><span class="text-blue">GET</span> /scrambles/api/v1/games</code>
+        <code><span class="text-blue">GET</span> /satoshigo/api/v1/games</code>
         <h5 class="text-caption q-mt-sm q-mb-none">Headers</h5>
         <code>{"X-Api-Key": &lt;invoice_key&gt;}</code><br />
         <h5 class="text-caption q-mt-sm q-mb-none">Body (application/json)</h5>
         <h5 class="text-caption q-mt-sm q-mb-none">
           Returns 200 OK (application/json)
         </h5>
-        <code>[&lt;scrambles_game_object&gt;, ...]</code>
+        <code>[&lt;satoshigo_game_object&gt;, ...]</code>
         <h5 class="text-caption q-mt-sm q-mb-none">Curl example</h5>
         <code
           >curl -X GET {{ request.url_root }}api/v1/games -H "X-Api-Key: {{
@@ -32,13 +32,13 @@
     group="api"
     dense
     expand-separator
-    label="Get a scrambles game"
+    label="Get a satoshigo game"
   >
     <q-card>
       <q-card-section>
         <code
           ><span class="text-blue">GET</span>
-          /scrambles/api/v1/games/&lt;scrambles_id&gt;</code
+          /satoshigo/api/v1/games/&lt;satoshigo_id&gt;</code
         >
         <h5 class="text-caption q-mt-sm q-mb-none">Headers</h5>
         <code>{"X-Api-Key": &lt;invoice_key&gt;}</code><br />
@@ -49,7 +49,7 @@
         <code>{"lnurl": &lt;string&gt;}</code>
         <h5 class="text-caption q-mt-sm q-mb-none">Curl example</h5>
         <code
-          >curl -X GET {{ request.url_root }}api/v1/games/&lt;scrambles_id&gt; -H
+          >curl -X GET {{ request.url_root }}api/v1/games/&lt;satoshigo_id&gt; -H
           "X-Api-Key: {{ g.user.wallets[0].inkey }}"
         </code>
       </q-card-section>
@@ -59,17 +59,17 @@
     group="api"
     dense
     expand-separator
-    label="Create a scrambles game"
+    label="Create a satoshigo game"
   >
     <q-card>
       <q-card-section>
-        <code><span class="text-green">POST</span> /scrambles/api/v1/games</code>
+        <code><span class="text-green">POST</span> /satoshigo/api/v1/games</code>
         <h5 class="text-caption q-mt-sm q-mb-none">Headers</h5>
         <code>{"X-Api-Key": &lt;admin_key&gt;}</code><br />
         <h5 class="text-caption q-mt-sm q-mb-none">Body (application/json)</h5>
         <code
-          >{"title": &lt;string&gt;, "min_scramblesable": &lt;integer&gt;,
-          "max_scramblesable": &lt;integer&gt;, "uses": &lt;integer&gt;,
+          >{"title": &lt;string&gt;, "min_satoshigoable": &lt;integer&gt;,
+          "max_satoshigoable": &lt;integer&gt;, "uses": &lt;integer&gt;,
           "wait_time": &lt;integer&gt;, "is_unique": &lt;boolean&gt;}</code
         >
         <h5 class="text-caption q-mt-sm q-mb-none">
@@ -79,8 +79,8 @@
         <h5 class="text-caption q-mt-sm q-mb-none">Curl example</h5>
         <code
           >curl -X POST {{ request.url_root }}api/v1/games -d '{"title":
-          &lt;string&gt;, "min_scramblesable": &lt;integer&gt;,
-          "max_scramblesable": &lt;integer&gt;, "uses": &lt;integer&gt;,
+          &lt;string&gt;, "min_satoshigoable": &lt;integer&gt;,
+          "max_satoshigoable": &lt;integer&gt;, "uses": &lt;integer&gt;,
           "wait_time": &lt;integer&gt;, "is_unique": &lt;boolean&gt;}' -H
           "Content-type: application/json" -H "X-Api-Key: {{
           g.user.wallets[0].adminkey }}"
@@ -92,20 +92,20 @@
     group="api"
     dense
     expand-separator
-    label="Update a scrambles game"
+    label="Update a satoshigo game"
   >
     <q-card>
       <q-card-section>
         <code
           ><span class="text-green">PUT</span>
-          /scrambles/api/v1/games/&lt;scrambles_id&gt;</code
+          /satoshigo/api/v1/games/&lt;satoshigo_id&gt;</code
         >
         <h5 class="text-caption q-mt-sm q-mb-none">Headers</h5>
         <code>{"X-Api-Key": &lt;admin_key&gt;}</code><br />
         <h5 class="text-caption q-mt-sm q-mb-none">Body (application/json)</h5>
         <code
-          >{"title": &lt;string&gt;, "min_scramblesable": &lt;integer&gt;,
-          "max_scramblesable": &lt;integer&gt;, "uses": &lt;integer&gt;,
+          >{"title": &lt;string&gt;, "min_satoshigoable": &lt;integer&gt;,
+          "max_satoshigoable": &lt;integer&gt;, "uses": &lt;integer&gt;,
           "wait_time": &lt;integer&gt;, "is_unique": &lt;boolean&gt;}</code
         >
         <h5 class="text-caption q-mt-sm q-mb-none">
@@ -114,9 +114,9 @@
         <code>{"lnurl": &lt;string&gt;}</code>
         <h5 class="text-caption q-mt-sm q-mb-none">Curl example</h5>
         <code
-          >curl -X PUT {{ request.url_root }}api/v1/games/&lt;scrambles_id&gt; -d
-          '{"title": &lt;string&gt;, "min_scramblesable": &lt;integer&gt;,
-          "max_scramblesable": &lt;integer&gt;, "uses": &lt;integer&gt;,
+          >curl -X PUT {{ request.url_root }}api/v1/games/&lt;satoshigo_id&gt; -d
+          '{"title": &lt;string&gt;, "min_satoshigoable": &lt;integer&gt;,
+          "max_satoshigoable": &lt;integer&gt;, "uses": &lt;integer&gt;,
           "wait_time": &lt;integer&gt;, "is_unique": &lt;boolean&gt;}' -H
           "Content-type: application/json" -H "X-Api-Key: {{
           g.user.wallets[0].adminkey }}"
@@ -128,13 +128,13 @@
     group="api"
     dense
     expand-separator
-    label="Delete a scrambles game"
+    label="Delete a satoshigo game"
   >
     <q-card>
       <q-card-section>
         <code
           ><span class="text-pink">DELETE</span>
-          /scrambles/api/v1/games/&lt;scrambles_id&gt;</code
+          /satoshigo/api/v1/games/&lt;satoshigo_id&gt;</code
         >
         <h5 class="text-caption q-mt-sm q-mb-none">Headers</h5>
         <code>{"X-Api-Key": &lt;admin_key&gt;}</code><br />
@@ -142,7 +142,7 @@
         <code></code>
         <h5 class="text-caption q-mt-sm q-mb-none">Curl example</h5>
         <code
-          >curl -X DELETE {{ request.url_root }}api/v1/games/&lt;scrambles_id&gt;
+          >curl -X DELETE {{ request.url_root }}api/v1/games/&lt;satoshigo_id&gt;
           -H "X-Api-Key: {{ g.user.wallets[0].adminkey }}"
         </code>
       </q-card-section>
