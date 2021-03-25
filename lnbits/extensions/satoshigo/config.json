@@ -1,6 +1,6 @@
 {
-  "name": "satoshigo",
-  "short_description": "Make satoshigo games",
+  "name": "SatoshiGo",
+  "short_description": "Make SatoshiGo games",
   "icon": "toll",
-  "contributors": ["arcbtc", "escapekey"]
+  "contributors": ["arcbtc", "escapekey", "louisaalexa"]
 }
