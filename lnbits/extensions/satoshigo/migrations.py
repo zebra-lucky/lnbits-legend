@@ -1,12 +1,16 @@
 async def m001_initial(db):
     await db.execute(
         """
-        CREATE TABLE IF NOT EXISTS scrambles_game (
+        CREATE TABLE IF NOT EXISTS satoshigo_game (
             id TEXT PRIMARY KEY,
             wallet TEXT NOT NULL,
+            wallet_key TEXT NOT NULL,
             title TEXT NOT NULL,
             top_left TEXT NOT NULL,
             bottom_right TEXT NOT NULL,
+            coins TEXT NOT NULL,
+            render_pin INTEGER NOT NULL,
+            amount INTEGER NOT NULL,
             time TIMESTAMP NOT NULL DEFAULT (strftime('%s', 'now'))
         );
     """
@@ -14,9 +18,9 @@ async def m001_initial(db):
 async def m002_initial(db):
     await db.execute(
         """
-        CREATE TABLE IF NOT EXISTS scrambles_funding (
+        CREATE TABLE IF NOT EXISTS satoshigo_funding (
             id TEXT PRIMARY KEY,
-            scrambles_id TEXT NOT NULL,
+            satoshigo_id TEXT NOT NULL,
             wallet TEXT NOT NULL,
             top_left TEXT NOT NULL,
             bottom_right TEXT NOT NULL,

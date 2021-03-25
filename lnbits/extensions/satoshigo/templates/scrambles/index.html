@@ -1,6 +1,6 @@
 {% extends "base.html" %} {% from "macros.jinja" import window_vars with context
 %} {% block scripts %} {{ window_vars(user) }}
-<script src="/scrambles/static/js/index.js"></script>
+<script src="/satoshigo/static/js/index.js"></script>
 {% endblock %} {% block page %}
 <div class="row q-col-gutter-md">
   <div class="col-12 col-md-7 q-gutter-y-md">
@@ -16,7 +16,7 @@
       <q-card-section>
         <div class="row items-center no-wrap q-mb-md">
           <div class="col">
-            <h5 class="text-subtitle1 q-my-none">scrambles games</h5>
+            <h5 class="text-subtitle1 q-my-none">satoshigo games</h5>
           </div>
           <div class="col-auto">
             <q-btn flat color="grey" @click="exportCSV">Export to CSV</q-btn>
@@ -25,10 +25,10 @@
         <q-table
           dense
           flat
-          :data="sortedscramblesgames"
+          :data="sortedsatoshigogames"
           row-key="id"
-          :columns="scramblesgamesTable.columns"
-          :pagination.sync="scramblesgamesTable.pagination"
+          :columns="satoshigogamesTable.columns"
+          :pagination.sync="satoshigogamesTable.pagination"
         >
           {% raw %}
           <template v-slot:header="props">
@@ -50,7 +50,7 @@
                   icon="launch"
                   :color="($q.dark.isActive) ? 'grey-7' : 'grey-5'"
                   type="a"
-                  :href="props.row.scrambles_url"
+                  :href="props.row.satoshigo_url"
                   target="_blank"
                 >
                   <q-tooltip> shareable game </q-tooltip></q-btn
@@ -72,7 +72,7 @@
                   flat
                   dense
                   size="xs"
-                  @click="deletescramblesgame(props.row.id)"
+                  @click="deletesatoshigogame(props.row.id)"
                   icon="cancel"
                   color="pink"
                 ></q-btn>
@@ -89,13 +89,13 @@
     <q-card>
       <q-card-section>
         <h6 class="text-subtitle1 q-my-none">
-          LNbits Scrambles extension
+          LNbits satoshigo extension
         </h6>
       </q-card-section>
       <q-card-section class="q-pa-none">
         <q-separator></q-separator>
         <q-list>
-          {% include "scrambles/_api_docs.html" %}
+          {% include "satoshigo/_api_docs.html" %}
         </q-list>
       </q-card-section>
     </q-card>
@@ -143,7 +143,7 @@
             unelevated
             color="deep-purple"
             type="submit"
-            >Update scrambles game</q-btn
+            >Update satoshigo game</q-btn
           >
           <q-btn
             v-else
@@ -153,7 +153,7 @@
                 formDialog.data.wallet == null ||
                 formDialog.data.title == null"
             type="submit"
-            >Create scrambles game</q-btn
+            >Create satoshigo game</q-btn
           >
           <q-btn v-close-popup flat color="grey" class="q-ml-auto"
             >Cancel</q-btn
@@ -179,12 +179,12 @@
           v-if="qrCodeDialog.data.is_unique"
           class="text-deep-purple"
         >
-          (QR code will change after each scramblesal)</span
+          (QR code will change after each satoshigoal)</span
         ><br />
-        <strong>Max. scramblesable:</strong> {{
-        qrCodeDialog.data.max_scramblesable }} sat<br />
+        <strong>Max. satoshigoable:</strong> {{
+        qrCodeDialog.data.max_satoshigoable }} sat<br />
         <strong>Wait time:</strong> {{ qrCodeDialog.data.wait_time }} seconds<br />
-        <strong>scrambless:</strong> {{ qrCodeDialog.data.used }} / {{
+        <strong>satoshigos:</strong> {{ qrCodeDialog.data.used }} / {{
         qrCodeDialog.data.uses }}
         <q-linear-progress
           :value="qrCodeDialog.data.used / qrCodeDialog.data.uses"

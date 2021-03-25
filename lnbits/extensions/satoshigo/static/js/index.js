@@ -9,7 +9,7 @@ var locationPath = [
   window.location.pathname
 ].join('')
 
-var mapscramblesgame = function (obj) {
+var mapsatoshigogame = function (obj) {
   obj._data = _.clone(obj)
   obj.date = Quasar.utils.date.formatDate(
     new Date(obj.time * 1000),
@@ -17,7 +17,7 @@ var mapscramblesgame = function (obj) {
   )
   obj.tleft = obj.top_left
   obj.bright = obj.bottom_right
-  obj.scrambles_url = [locationPath, obj.id].join('')
+  obj.satoshigo_url = [locationPath, obj.id].join('')
   return obj
 }
 
@@ -27,8 +27,8 @@ new Vue({
   data: function () {
     return {
       checker: null,
-      scramblesgames: [],
-      scramblesgamesTable: {
+      satoshigogames: [],
+      satoshigogamesTable: {
         columns: [
           {name: 'id', align: 'left', label: 'ID', field: 'id'},
           {name: 'title', align: 'left', label: 'Title', field: 'title'},
@@ -53,8 +53,8 @@ new Vue({
   },
   computed: {
 
-    sortedscramblesgames: function () {
-      return this.scramblesgames.sort(function (a, b) {
+    sortedsatoshigogames: function () {
+      return this.satoshigogames.sort(function (a, b) {
         return
       })
     }
@@ -63,18 +63,18 @@ new Vue({
     test: function () {
       console.log("poo")
     },
-    getscramblesgames: function () {
+    getsatoshigogames: function () {
       var self = this
 
       LNbits.api
         .request(
           'GET',
-          '/scrambles/api/v1/games?all_wallets',
+          '/satoshigo/api/v1/games?all_wallets',
           this.g.user.wallets[0].inkey
         )
         .then(function (response) {
-          self.scramblesgames = response.data.map(function (obj) {
-            return mapscramblesgame(obj)
+          self.satoshigogames = response.data.map(function (obj) {
+            return mapsatoshigogame(obj)
           })
         })
         .catch(function (error) {
@@ -88,7 +88,7 @@ new Vue({
       }
     },
     openQrCodeDialog: function (gameId) {
-      var game = _.findWhere(this.scramblesgames, {id: gameId})
+      var game = _.findWhere(this.satoshigogames, {id: gameId})
 
       this.qrCodeDialog.data = _.clone(game)
       console.log(this.qrCodeDialog.data)
@@ -97,7 +97,7 @@ new Vue({
       this.qrCodeDialog.show = true
     },
     openUpdateDialog: function (gameId) {
-      var game = _.findWhere(this.scramblesgames, {id: gameId})
+      var game = _.findWhere(this.satoshigogames, {id: gameId})
       this.formDialog.data = _.clone(game._data)
       this.formDialog.show = true
     },
@@ -107,9 +107,9 @@ new Vue({
       })
       var data = _.omit(this.formDialog.data, 'wallet')
       if (data.id) {
-        this.updatescramblesgame(wallet, data)
+        this.updatesatoshigogame(wallet, data)
       } else {
-        this.createscramblesgame(wallet, data)
+        this.createsatoshigogame(wallet, data)
       }
     },
     simplesendFormData: function () {
@@ -121,18 +121,18 @@ new Vue({
       data.title = 'game'
 
       if (data.id) {
-        this.updatescramblesgame(wallet, data)
+        this.updatesatoshigogame(wallet, data)
       } else {
-        this.createscramblesgame(wallet, data)
+        this.createsatoshigogame(wallet, data)
       }
     },
-    updatescramblesgame: function (wallet, data) {
+    updatesatoshigogame: function (wallet, data) {
       var self = this
 
       LNbits.api
         .request(
           'PUT',
-          '/scrambles/api/v1/games/' + data.id,
+          '/satoshigo/api/v1/games/' + data.id,
           wallet.adminkey,
           _.pick(
             data,
@@ -142,23 +142,23 @@ new Vue({
           )
         )
         .then(function (response) {
-          self.scramblesgames = _.reject(self.scramblesgames, function (obj) {
+          self.satoshigogames = _.reject(self.satoshigogames, function (obj) {
             return obj.id === data.id
           })
-          self.scramblesgames.push(mapscramblesgame(response.data))
+          self.satoshigogames.push(mapsatoshigogame(response.data))
           self.formDialog.show = false
         })
         .catch(function (error) {
           LNbits.utils.notifyApiError(error)
         })
     },
-    createscramblesgame: function (wallet, data) {
+    createsatoshigogame: function (wallet, data) {
       var self = this
 
       LNbits.api
-        .request('POST', '/scrambles/api/v1/games', wallet.adminkey, data)
+        .request('POST', '/satoshigo/api/v1/games', wallet.adminkey, data)
         .then(function (response) {
-          self.scramblesgames.push(mapscramblesgame(response.data))
+          self.satoshigogames.push(mapsatoshigogame(response.data))
           self.formDialog.show = false
           self.simpleformDialog.show = false
         })
@@ -166,21 +166,21 @@ new Vue({
           LNbits.utils.notifyApiError(error)
         })
     },
-    deletescramblesgame: function (gameId) {
+    deletesatoshigogame: function (gameId) {
       var self = this
-      var game = _.findWhere(this.scramblesgames, {id: gameId})
+      var game = _.findWhere(this.satoshigogames, {id: gameId})
 
       LNbits.utils
-        .confirmDialog('Are you sure you want to delete this scrambles game?')
+        .confirmDialog('Are you sure you want to delete this satoshigo game?')
         .onOk(function () {
           LNbits.api
             .request(
               'DELETE',
-              '/scrambles/api/v1/games/' + gameId,
+              '/satoshigo/api/v1/games/' + gameId,
               _.findWhere(self.g.user.wallets, {id: game.wallet}).adminkey
             )
             .then(function (response) {
-              self.scramblesgames = _.reject(self.scramblesgames, function (obj) {
+              self.satoshigogames = _.reject(self.satoshigogames, function (obj) {
                 return obj.id === gameId
               })
             })
@@ -195,10 +195,10 @@ new Vue({
   },
   created: function () {
     if (this.g.user.wallets.length) {
-      var getscramblesgames = this.getscramblesgames
-      getscramblesgames()
+      var getsatoshigogames = this.getsatoshigogames
+      getsatoshigogames()
       this.checker = setInterval(function () {
-        getscramblesgames()
+        getsatoshigogames()
       }, 20000)
     }
   }
