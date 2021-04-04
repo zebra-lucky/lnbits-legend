@@ -65,7 +65,7 @@
 </div>
 {% endblock %} {% block scripts %}
 <script src="/satoshigo/static/js/test.js"></script>
-<link rel="stylesheet" href="/satoshigo/static/css/leaflet.css" />
+<link rel="stylesheet" href="/satoshigo/static/js/leaflet.css" />
 <script src="/satoshigo/static/js/leaflet.js"></script>
 <script src="/satoshigo/static/js/main.js"></script>
 <style>
@@ -177,7 +177,7 @@ var map = L.map('map').fitWorld()
    }
 
 L.tileLayer(
-  'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+  Quasar.utils.openURL('https://tile.openstreetmap.org/{z}/{x}/{y}.png'),
   {
     zoomSnap: 2,
     maxZoom: 18,
