@@ -1,0 +1,116 @@
+<q-card>
+  <q-card-section>
+    <p>
+      Fortuna, lnurl-powered gambling instance.<br /><br />
+      <small>
+        Created by, <a href="https://github.com/benarc">Ben Arc</a></small
+      >
+    </p>
+  </q-card-section>
+  <q-expansion-item
+    group="extras"
+    icon="swap_vertical_circle"
+    label="API info"
+    :content-inset-level="0.5"
+  >
+    <q-expansion-item group="api" dense expand-separator label="Create fortuna">
+      <q-card>
+        <q-card-section>
+          <code
+            ><span class="text-blue">POST</span> /fortuna/api/v1/fortuna</code
+          >
+          <h5 class="text-caption q-mt-sm q-mb-none">Headers</h5>
+          <code>{"X-Api-Key": &lt;admin_key&gt;}</code><br />
+          <h5 class="text-caption q-mt-sm q-mb-none">
+            Body (application/json)
+          </h5>
+          <h5 class="text-caption q-mt-sm q-mb-none">
+            Returns 200 OK (application/json)
+          </h5>
+          <code>[&lt;charge_object&gt;, ...]</code>
+          <h5 class="text-caption q-mt-sm q-mb-none">Curl example</h5>
+          <code
+            >curl -X POST {{ request.url_root }}api/v1/fortuna -d '{"title":
+            &lt;string&gt;, "cost": &lt;string&gt;, "numerator":
+            &lt;integer&gt;, "denominator": &lt;integer&gt;, "lose_message":
+            &lt;string&gt;, "win_message": &lt;string&gt;}' -H "Content-type:
+            application/json" -H "X-Api-Key: {{g.user.wallets[0].adminkey }}"
+          </code>
+        </q-card-section>
+      </q-card>
+    </q-expansion-item>
+    <q-expansion-item group="api" dense expand-separator label="Get fortuna">
+      <q-card>
+        <q-card-section>
+          <code
+            ><span class="text-blue">GET</span>
+            /fortuna/api/v1/fortuna/&lt;fortuna_id&gt;</code
+          >
+          <h5 class="text-caption q-mt-sm q-mb-none">Headers</h5>
+          <code>{"X-Api-Key": &lt;invoice_key&gt;}</code><br />
+          <h5 class="text-caption q-mt-sm q-mb-none">
+            Body (application/json)
+          </h5>
+          <h5 class="text-caption q-mt-sm q-mb-none">
+            Returns 200 OK (application/json)
+          </h5>
+          <code>[&lt;charge_object&gt;, ...]</code>
+          <h5 class="text-caption q-mt-sm q-mb-none">Curl example</h5>
+          <code
+            >curl -X GET {{ request.url_root }}api/v1/fortuna/&lt;fortuna_id&gt;
+            -H "X-Api-Key: {{ g.user.wallets[0].inkey }}"
+          </code>
+        </q-card-section>
+      </q-card>
+    </q-expansion-item>
+    <q-expansion-item group="api" dense expand-separator label="Get fortunas">
+      <q-card>
+        <q-card-section>
+          <code
+            ><span class="text-blue">GET</span> /fortuna/api/v1/fortuna</code
+          >
+          <h5 class="text-caption q-mt-sm q-mb-none">Headers</h5>
+          <code>{"X-Api-Key": &lt;invoice_key&gt;}</code><br />
+          <h5 class="text-caption q-mt-sm q-mb-none">
+            Body (application/json)
+          </h5>
+          <h5 class="text-caption q-mt-sm q-mb-none">
+            Returns 200 OK (application/json)
+          </h5>
+          <code>[&lt;fortuna_object&gt;, ...]</code>
+          <h5 class="text-caption q-mt-sm q-mb-none">Curl example</h5>
+          <code
+            >curl -X GET {{ request.url_root }}api/v1/fortuna -H "X-Api-Key: {{
+            g.user.wallets[0].inkey }}"
+          </code>
+        </q-card-section>
+      </q-card>
+    </q-expansion-item>
+    <q-expansion-item
+      group="api"
+      dense
+      expand-separator
+      label="Delete fortuna"
+      class="q-pb-md"
+    >
+      <q-card>
+        <q-card-section>
+          <code
+            ><span class="text-pink">DELETE</span>
+            /fortuna/api/v1/fortuna/&lt;fortuna_id&gt;</code
+          >
+          <h5 class="text-caption q-mt-sm q-mb-none">Headers</h5>
+          <code>{"X-Api-Key": &lt;admin_key&gt;}</code><br />
+          <h5 class="text-caption q-mt-sm q-mb-none">Returns 204 NO CONTENT</h5>
+          <code></code>
+          <h5 class="text-caption q-mt-sm q-mb-none">Curl example</h5>
+          <code
+            >curl -X DELETE {{ request.url_root
+            }}api/v1/fortuna/&lt;fortuna_id&gt; -H "X-Api-Key: {{
+            g.user.wallets[0].adminkey }}"
+          </code>
+        </q-card-section>
+      </q-card>
+    </q-expansion-item>
+  </q-expansion-item>
+</q-card>

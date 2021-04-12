@@ -1,0 +1,121 @@
+{% extends "public.html" %} {% block page %}
+<div class="q-pa-sm theCard">
+  <q-card class="my-card">
+    <qrcode
+      :value="'{{ charge.payment_request }}'"
+      :options="{width: 800}"
+      class="rounded-borders"
+    ></qrcode>
+  </q-card>
+</div>
+
+{% endblock %} {% block scripts %}
+<script src="{{ url_for('static', filename='vendor/vue-qrcode@1.0.2/vue-qrcode.min.js') }}"></script>
+<style>
+  .theCard {
+    width: 360px;
+    margin: 10px auto;
+  }
+  .theHeading {
+    margin: 15px;
+    font-size: 25px;
+  }
+</style>
+<script>
+  Vue.component(VueQrcode.name, VueQrcode)
+
+  new Vue({
+    el: '#vue',
+    mixins: [windowMixin],
+    data() {
+      return {
+        newProgress: 0.4,
+        counter: 1,
+        newTimeLeft: '',
+        lnbtc: true,
+        onbtc: false,
+        charge_time_elapsed: '{{charge.time_elapsed}}',
+        charge_amount: '{{charge.amount}}',
+        charge_balance: '{{charge.balance}}',
+        charge_paid: '{{charge.paid}}'
+      }
+    },
+    methods: {
+      checkBalance: function () {
+        var self = this
+        LNbits.api
+          .request(
+            'GET',
+            '/satspay/api/v1/charges/balance/{{ charge.id }}',
+            'filla'
+          )
+          .then(function (response) {
+            console.log(response.data)
+            self.charge_time_elapsed = response.data.time_elapsed
+            self.charge_amount = response.data.amount
+            self.charge_balance = response.data.balance
+            if (self.charge_balance >= self.charge_amount) {
+              self.charge_paid = 'True'
+            }
+          })
+          .catch(function (error) {
+            LNbits.utils.notifyApiError(error)
+          })
+      },
+      payLN: function () {
+        this.lnbtc = true
+        this.onbtc = false
+      },
+      payON: function () {
+        this.lnbtc = false
+        this.onbtc = true
+      },
+      getTheTime: function () {
+        var timeToComplete =
+          parseInt('{{ charge.time }}') * 60 -
+          (Date.now() / 1000 - parseInt('{{ charge.timestamp }}'))
+        var timeLeft = Quasar.utils.date.formatDate(
+          new Date((timeToComplete - 3600) * 1000),
+          'HH:mm:ss'
+        )
+        this.newTimeLeft = timeLeft
+      },
+      getThePercentage: function () {
+        var timeToComplete =
+          parseInt('{{ charge.time }}') * 60 -
+          (Date.now() / 1000 - parseInt('{{ charge.timestamp }}'))
+        this.newProgress =
+          1 - timeToComplete / (parseInt('{{ charge.time }}') * 60)
+      },
+
+      timerCount: function () {
+        self = this
+        var refreshIntervalId = setInterval(function () {
+          if (self.charge_paid == 'True') {
+            console.log('did this work?')
+            clearInterval(refreshIntervalId)
+          }
+          self.getTheTime()
+          self.getThePercentage()
+          self.counter++
+          if (self.counter % 10 === 0) {
+            self.checkBalance()
+          }
+        }, 1000)
+      }
+    },
+    created: function () {
+      if ('{{ charge.lnbitswallet }}' == 'None') {
+        this.lnbtc = false
+        this.onbtc = true
+      }
+      this.getTheTime()
+      this.getThePercentage()
+      var timerCount = this.timerCount
+      if ('{{ charge.paid }}' == 'False') {
+        timerCount()
+      }
+    }
+  })
+</script>
+{% endblock %}
