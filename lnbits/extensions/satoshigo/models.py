@@ -9,8 +9,6 @@ class satoshigoGame(NamedTuple):
     wallet: str
     wallet_key: str
     title: str
-    top_left: str
-    bottom_right: str
     coins: str
     render_pin: int
     amount: int
@@ -24,8 +22,10 @@ class satoshigoFunding(NamedTuple):
     id: str
     satoshigo_id: str
     wallet: str
-    top_left: str
-    bottom_right: str
+    tplat: str
+    tplon: str
+    btlat: str
+    btlon: str
     amount: int
     payment_hash: str
     confirmed: bool

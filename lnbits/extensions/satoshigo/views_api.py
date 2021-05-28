@@ -48,8 +48,6 @@ async def api_game_retrieve(game_id):
 @api_validate_post_request(
     schema={
         "title": {"type": "string", "empty": False, "required": True},
-        "top_left": {"type": "string", "empty": False, "required": True},
-        "bottom_right": {"type": "string", "empty": False, "required": True},
     }
 )
 async def api_game_create_or_update(game_id=None):
@@ -89,8 +87,10 @@ async def api_game_delete(game_id):
 @api_validate_post_request(
     schema={
         "game_id": {"type": "string", "empty": False, "required": True},
-        "top_left": {"type": "string", "empty": False, "required": True},
-        "bottom_right": {"type": "string", "empty": False, "required": True},
+        "tplat": {"type": "string", "empty": False, "required": True},
+        "tplon": {"type": "string", "empty": False, "required": True},
+        "btlat": {"type": "string", "empty": False, "required": True},
+        "btlon": {"type": "string", "empty": False, "required": True},
         "sats": {"type": "integer", "empty": False, "required": True},
     }
 )
@@ -109,8 +109,10 @@ async def api_game_fund():
     funding = await create_satoshigo_funding(
         game_id=game.id, 
         wallet=game.wallet, 
-        top_left=g.data["top_left"], 
-        bottom_right=g.data["bottom_right"], 
+        tplat=g.data["tplat"], 
+        tplon=g.data["tplon"], 
+        btlat=g.data["btlat"], 
+        btlon=g.data["btlon"], 
         amount=g.data["sats"], 
         payment_hash=payment_hash,
         )

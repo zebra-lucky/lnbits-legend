@@ -14,9 +14,12 @@ from .crud import get_satoshigo_game
 async def index():
     return await render_template("satoshigo/index.html", user=g.user)
 
+@satoshigo_ext.route("/test/")
+async def test():
+    return await render_template("satoshigo/testleaflet.html")
+
 
 @satoshigo_ext.route("/<game_id>")
 async def display(game_id):
     game = await get_satoshigo_game(game_id) or abort(HTTPStatus.NOT_FOUND, "satoshigo game does not exist.")
-    print(game)
-    return await render_template("satoshigo/display.html", topLeft=game.top_left, bottomRight=game.bottom_right, gameAmount=game.amount, )
+    return await render_template("satoshigo/display.html", gameAmount=game.amount, game_id=game_id)

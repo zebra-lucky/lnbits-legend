@@ -12,8 +12,6 @@ async def create_satoshigo_game(
     wallet: str,
     wallet_key: str,
     title: str,
-    top_left: str,
-    bottom_right: str,
 ) -> satoshigoGame:
     game_id = urlsafe_short_hash()
     await db.execute(
@@ -23,21 +21,17 @@ async def create_satoshigo_game(
             wallet,
             wallet_key,
             title,
-            top_left,
-            bottom_right,
             coins,
             amount,
             render_pin
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
         """,
         (
             game_id,
             wallet,
             wallet_key,
             title,
-            top_left,
-            bottom_right,
             "",
             0,
             random.randint(999, 9999)
@@ -80,8 +74,10 @@ async def create_satoshigo_funding(
     *,
     game_id: str,
     wallet: str,
-    top_left: str,
-    bottom_right: str,
+    tplat: str,
+    tplon: str,
+    btlat: str,
+    btlon: str,
     amount: int,
     payment_hash: str
 ) -> satoshigoGame:
@@ -92,20 +88,24 @@ async def create_satoshigo_funding(
             id,
             satoshigo_id,
             wallet,
-            top_left,
-            bottom_right,
+            tplat,
+            tplon,
+            btlat,
+            btlon,
             amount,
             payment_hash,
             confirmed
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (   
             funding_id,
             game_id,
             wallet,
-            top_left,
-            bottom_right,
+            tplat,
+            tplon,
+            btlat,
+            btlon,
             amount,
             payment_hash,
             False
@@ -113,12 +113,10 @@ async def create_satoshigo_funding(
     )
     funding = await get_satoshigo_funding(funding_id)
     assert funding, "Newly created game couldn't be retrieved"
-    print("funding")
     return funding
 
 async def get_satoshigo_funding(funding_id: str) -> Optional[satoshigoFunding]:
     row = await db.fetchone("SELECT * FROM satoshigo_funding WHERE id = ?", (funding_id,))
-
     return satoshigoFunding._make(row)
 
 

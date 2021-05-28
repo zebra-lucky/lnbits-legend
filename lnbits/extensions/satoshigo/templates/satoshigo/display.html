@@ -4,14 +4,42 @@ context %}{% block page %}
   <div class="col-md-6">
     <q-card-section>
       <q-card class="q-pa-lg">
-        <div id="map" style="width: 100%; height: 300px"></div>
-        <p>
-          Top-left words: {{ bottomRight }} <br />
-          Bottom-right words: {{ topLeft }}<br />{% raw %}
-          <strong style="font-size: 30px"
-            >Amount: <b v-text="satsAmount"></b> sats</strong
+        <div
+          id="mapContainer"
+          style="height: 400px; width: 100%; margin-top: 50px"
+        >
+          <q-tooltip
+            content-class="bg-orange"
+            color="orange"
+            content-style="font-size: 16px"
+            anchor="top middle"
+            self="center middle"
+            :offset="[10, 10]"
           >
-        </p>
+            {% raw %}{{selectTooltip}}
+          </q-tooltip>
+        </div>
+        <div class="row q-pt-md">
+          <div class="col-8">
+            <p>
+              Top-left corner: {{ tplat }} , {{ tplng }} <br />
+              Bottom-right corner: {{ btlat }} , {{ btlng }} <br />
+              <strong style="font-size: 30px"
+                >Amount: <b v-text="satsAmount"></b> sats</strong
+              >
+            </p>
+          </div>
+          <div class="col-4">
+            <q-btn
+              unelevated
+              rounded
+              color="orange"
+              label="Share this page"
+              @click="copyText(getTheUrl, 'Link copied to clipboard!')"
+            />
+          </div>
+        </div>
+
         {% endraw %}
       </q-card>
     </q-card-section>
@@ -19,6 +47,7 @@ context %}{% block page %}
   <div class="col-md-2">
     <q-card-section>
       <q-card class="q-pa-lg q-pt-xl lnbits__dialog-card">
+        <img src="/satoshigo/static/funding.png" />
         <q-form @submit="makePayment" class="q-gutter-md">
           <q-input
             filled
@@ -28,7 +57,7 @@ context %}{% block page %}
             label="amount of sats *"
           ></q-input>
           <div class="row q-mt-lg">
-            <q-btn unelevated color="deep-purple" type="submit">Fund map</q-btn>
+            <q-btn unelevated color="orange" type="submit">Fund map</q-btn>
           </div>
         </q-form>
       </q-card>
@@ -63,7 +92,12 @@ context %}{% block page %}
 </div>
 {% endblock %} {% block scripts %}
 
-<link src="/satoshigo/static/js/leafletsats.css" crossorigin=""></link>
+<link
+  rel="stylesheet"
+  href="/satoshigo/static/js/leafletsats.css"
+  crossorigin=""
+/>
+
 <script src="/satoshigo/static/js/leafletsats.js" crossorigin=""></script>
 
 <style>
@@ -90,7 +124,31 @@ context %}{% block page %}
             bottom_right: 'slush edit ticket allow',
             sats: 100
           }
-        }
+        },
+        center: [51.505, -0.09],
+        tplat: 0,
+        tplng: 0,
+        btlat: 0,
+        btlng: 0,
+        mapTooltip: 'Select top-left corner',
+        tp1: true,
+        polygon: {},
+        mapDiv: {},
+        game_id: '{{game_id}}'
+      }
+    },
+    computed: {
+      selectTooltip: function () {
+        return this.mapTooltip
+      },
+      selectTop: function () {
+        return [this.tplat, this.tplng]
+      },
+      selectBot: function () {
+        return [this.btlat, this.btlng]
+      },
+      getTheUrl: function () {
+        return window.location.href
       }
     },
     methods: {
@@ -101,6 +159,12 @@ context %}{% block page %}
         var self = this
         self.payDialog.data.sats = parseInt(self.payDialog.data.sats)
         var data = self.payDialog.data
+        data.tplat = self.tplat
+        data.tplon = self.tplng
+        data.btlat = self.btlat
+        data.btlon = self.btlng
+        data.game_id = self.game_id
+        console.log(data.game_id)
         self.$q.notify({
           spinner: true,
           message: 'Please wait...',
@@ -156,57 +220,178 @@ context %}{% block page %}
         self.payDialog.show = false
         self.payDialog.data = {}
       },
-      wooo: function () {
-        this.payDialog.data.game_id = window.location.pathname.split('/').pop()
-
-        var map = L.map('map').setView([50, -0.1], 4)
-
-        var openstreetmap = L.tileLayer(
-          'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-          {
-            maxZoom: 6
+      firstCorner: function (lat, lng) {
+        this.insertParam('tplat', lat, 'tplng', lng)
+      },
+      secondCorner: function (lat, lng) {
+        this.insertParam('btlat', lat, 'btlng', lng)
+      },
+      getUrlVars: function () {
+        var vars = {}
+        var parts = window.location.href.replace(
+          /[?&]+([^=&]+)=([^&]*)/gi,
+          function (m, key, value) {
+            vars[key] = value
           }
         )
+        return vars
+      },
 
-        var openstreetmapHot = L.tileLayer(
-          'http://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
-          {
-            maxZoom: 6
-          }
-        )
+      insertParam: function (key1, value1, key2, value2) {
+        self = this
+        key1 = encodeURIComponent(key1)
+        value1 = encodeURIComponent(value1)
+        key2 = encodeURIComponent(key2)
+        value2 = encodeURIComponent(value2)
 
-        var openstreetmapOsm = L.tileLayer(
-          'http://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png',
-          {
-            maxZoom: 6
-          }
-        )
+        var tplat = self.getUrlVars()['tplat']
+        var tplng = self.getUrlVars()['tplng']
+        var btlat = self.getUrlVars()['btlat']
+        var btlng = self.getUrlVars()['btlng']
+        window.history.pushState({path: refresh}, '', refresh)
 
-        var allOptions = {
-          'Open streetmap': openstreetmap,
-          'Open streetmap: Hot': openstreetmapHot,
-          'Open streetmap: Osm': openstreetmapOsm
+        if (btlat && key1 == 'tplat') {
+          var refresh =
+            window.location.protocol +
+            '//' +
+            window.location.host +
+            window.location.pathname +
+            '?btlat=' +
+            encodeURIComponent(btlat) +
+            '&btlng=' +
+            encodeURIComponent(btlng) +
+            '&' +
+            key1 +
+            '=' +
+            value1 +
+            '&' +
+            key2 +
+            '=' +
+            value2
+        } else if (tplat && key1 == 'btlat') {
+          var refresh =
+            window.location.protocol +
+            '//' +
+            window.location.host +
+            window.location.pathname +
+            '?tplat=' +
+            encodeURIComponent(tplat) +
+            '&tplng=' +
+            encodeURIComponent(tplng) +
+            '&' +
+            key1 +
+            '=' +
+            value1 +
+            '&' +
+            key2 +
+            '=' +
+            value2
+        } else {
+          var refresh =
+            window.location.protocol +
+            '//' +
+            window.location.host +
+            window.location.pathname +
+            '?' +
+            key1 +
+            '=' +
+            value1 +
+            '&' +
+            key2 +
+            '=' +
+            value2
         }
 
-        openstreetmap.addTo(map)
+        window.history.pushState({path: refresh}, '', refresh)
+      },
+      mapSquare: function () {
+        self.mapDiv.removeLayer(self.polygon)
+        self.polygon = L.polygon([
+          [self.selectTop[0], self.selectTop[1]],
+          [self.selectTop[0], self.selectBot[1]],
 
-        L.control.layers(allOptions).addTo(map)
-
-        function getUrlVars() {
-          var vars = {}
-          var parts = window.location.href.replace(
-            /[?&]+([^=&]+)=([^&]*)/gi,
-            function (m, key, value) {
-              vars[key] = value
-            }
+          [self.selectBot[0], self.selectBot[1]],
+          [self.selectBot[0], self.selectTop[1]]
+        ]).addTo(self.mapDiv)
+      },
+      startMap: function () {
+        self = this
+        if ((self.tplat, self.tplng, self.btlat, self.btlng)) {
+          //    console.log(self.btlat)
+          console.log((parseFloat(self.tplat) + parseFloat(self.btlat)) / 2)
+          console.log((parseFloat(self.tplng) + parseFloat(self.btlng)) / 2)
+          self.mapDiv = L.map('mapContainer').setView(
+            [
+              (parseFloat(self.tplat) + parseFloat(self.btlat)) / 2,
+              (parseFloat(self.tplng) + parseFloat(self.btlng)) / 2
+            ],
+            10
           )
-          return vars
+        } else {
+          self.mapDiv = L.map('mapContainer').setView(self.center, 10)
         }
+      },
+      setupLeafletMap: function () {
+        self = this
+        self.startMap()
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution:
+            'Map data (c) <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery (c) <a href="https://www.mapbox.com/">Mapbox</a>',
+          maxZoom: 18,
+          id: 'mapbox/streets-v11'
+        }).addTo(self.mapDiv)
+
+        var popup = L.popup()
+        function tester() {
+          console.log('pooop')
+        }
+
+        function onMapClick(e) {
+          if (self.tp1) {
+            self.tplat = e.latlng.lat
+            self.tplng = e.latlng.lng
+            self.tp1 = !self.tp1
+            self.mapTooltip = 'Click to select bottom-right corner'
+            self.firstCorner(e.latlng.lat, e.latlng.lng)
+          } else {
+            self.btlat = e.latlng.lat
+            self.btlng = e.latlng.lng
+            self.tp1 = !self.tp1
+            self.mapTooltip = 'Click to select top-left corner'
+            self.secondCorner(e.latlng.lat, e.latlng.lng)
+            self.mapSquare()
+          }
+        }
+
+        self.mapDiv.on('click', onMapClick)
       }
     },
-    created: function () {
-      this.wooo()
-      console.log(this.satsAmount)
+    mounted() {
+      self = this
+      self.setupLeafletMap()
+      if ((self.tplat, self.tplng, self.btlat, self.btlng)) {
+        self.mapSquare()
+        setTimeout(function () {
+          self.mapDiv.fitBounds(self.polygon.getBounds())
+        }, 500)
+      }
+    },
+    created() {
+      self = this
+      function getUrlVars() {
+        var vars = {}
+        var parts = window.location.href.replace(
+          /[?&]+([^=&]+)=([^&]*)/gi,
+          function (m, key, value) {
+            vars[key] = value
+          }
+        )
+        return vars
+      }
+      self.tplat = getUrlVars()['tplat']
+      self.tplng = getUrlVars()['tplng']
+      self.btlat = getUrlVars()['btlat']
+      self.btlng = getUrlVars()['btlng']
     }
   })
 </script>

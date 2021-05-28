@@ -32,8 +32,7 @@ new Vue({
         columns: [
           {name: 'id', align: 'left', label: 'ID', field: 'id'},
           {name: 'title', align: 'left', label: 'Title', field: 'title'},
-          {name: 'topleft', align: 'right', label: 'Top left words', field: 'tleft'},
-          {name: 'bottomright', align: 'right', label: 'Bottom right words', field: 'bright'}
+          {name: 'amount', align: 'left', label: 'Amount', field: 'amount'}
         ],
         pagination: {
           rowsPerPage: 10
