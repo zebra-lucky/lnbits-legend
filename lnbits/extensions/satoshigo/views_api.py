@@ -132,3 +132,21 @@ async def api_game_check_funding(satoshigo_id, payment_hash):
         return jsonify({**check._asdict()}), HTTPStatus.OK
 
     return jsonify({**check._asdict()}), HTTPStatus.OK
+
+
+###################################### PLAYER STUFF 
+
+
+@satoshigo_ext.route("/api/v1/players", methods=["POST"])
+@satoshigo_ext.route("/api/v1/players/<player_id>", methods=["PUT"])
+@api_check_wallet_key("admin")
+@api_validate_post_request(
+    schema={
+        "title": {"type": "string", "empty": False, "required": True},
+    }
+)
+
+
+registerPlayer
+updatePlayer
+findMe

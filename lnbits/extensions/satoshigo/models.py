@@ -31,6 +31,14 @@ class satoshigoFunding(NamedTuple):
     confirmed: bool
     time: int
 
+class satoshigoPlayers(NamedTuple):
+    id: str
+    name: str
+    user_id: str
+    wallet_id: str
+    wallet_admin: str
+    time: int
+
     @classmethod
     def from_row(cls, row: Row) -> "satoshigoFunding":
         return cls(**dict(row))
