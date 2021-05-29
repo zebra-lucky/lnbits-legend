@@ -181,11 +181,3 @@ async def api_game_players_get():
     return jsonify(playersAr), HTTPStatus.CREATED
 
 
-@satoshigo_ext.route("/api/v1/players/balance/<player_id>", methods=["GET"])
-@api_check_wallet_key("admin")
-async def api_game_player_balance_get(player_id):
-    walletDetails =  await get_satoshigo_player_wallet(player_id)
-    print(walletDetails)
-    wallet = await get_wallet(walletDetails.id)
-    return jsonify(wallet._asdict()), HTTPStatus.CREATED
-
