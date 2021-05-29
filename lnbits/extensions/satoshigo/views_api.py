@@ -145,8 +145,9 @@ async def api_game_check_funding(satoshigo_id, payment_hash):
         "title": {"type": "string", "empty": False, "required": True},
     }
 )
+async def api_game_player_post():
+    return "", HTTPStatus.OK
 
-
-registerPlayer
-updatePlayer
-findMe
+#registerPlayer
+#updatePlayer
+#findMe
