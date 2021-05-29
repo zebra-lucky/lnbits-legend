@@ -159,9 +159,8 @@ async def get_satoshigo_player(player_id):
 
 async def get_satoshigo_player_wallet(player_id):
     wallet = await get_usermanager_users_wallets(player_id)
-    print(wallet)
-    return wallet[0]
+    return wallet
 
 async def get_satoshigo_players(admin) -> Optional[satoshigoPlayers]:
-    row = await db.fetchall("SELECT * FROM satoshigo_players WHERE admin = ?", (admin,))
-    return satoshigoPlayers._make(row)
+    rows = await db.fetchall("SELECT * FROM satoshigo_players WHERE admin = ?", (admin,))
+    return [satoshigoPlayers._make(row) for row in rows]

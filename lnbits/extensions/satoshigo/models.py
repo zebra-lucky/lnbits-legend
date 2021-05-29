@@ -33,6 +33,7 @@ class satoshigoFunding(NamedTuple):
 
 class satoshigoPlayers(NamedTuple):
     id: str
+    admin: str
     time: int
 
     @classmethod

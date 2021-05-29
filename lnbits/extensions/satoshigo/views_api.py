@@ -2,7 +2,7 @@ from quart import g, jsonify, request
 from http import HTTPStatus
 from lnurl.exceptions import InvalidUrl as LnurlInvalidUrl  # type: ignore
 
-from lnbits.core.crud import get_user, get_wallet
+from lnbits.core.crud import get_user
 from lnbits.decorators import api_check_wallet_key, api_validate_post_request
 
 from . import satoshigo_ext
@@ -158,15 +158,17 @@ async def api_game_player_post():
     return jsonify(player._asdict(), [
                 wallet._asdict()
                 for wallet in await get_satoshigo_player_wallet(player.id)
-            ]), HTTPStatus.CREATED
+            ][0]), HTTPStatus.CREATED
 
 
 @satoshigo_ext.route("/api/v1/players/<player_id>", methods=["GET"])
 @api_check_wallet_key("admin")
 async def api_game_player_get(player_id):
     player = await get_satoshigo_player(player_id)
-    walletDetails =  await get_satoshigo_player_wallet(player[0])
-    return jsonify(player._asdict(), walletDetails._asdict()), HTTPStatus.CREATED
+    return jsonify(player._asdict(), [
+                wallet._asdict()
+                for wallet in await get_satoshigo_player_wallet(player.id)
+            ]), HTTPStatus.CREATED
 
 
 @satoshigo_ext.route("/api/v1/players", methods=["GET"])
@@ -176,8 +178,5 @@ async def api_game_players_get():
     playersAr = []
     for player in players:
         playerDetails = await get_satoshigo_player(player[0])
-        walletDetails =  await get_satoshigo_player_wallet(player[0])
-        playersAr.append([playerDetails._asdict(), walletDetails._asdict()])
+        playersAr.append([playerDetails._asdict(), [wallet._asdict() for wallet in await get_satoshigo_player_wallet(player[0])][0]])
     return jsonify(playersAr), HTTPStatus.CREATED
-
-
