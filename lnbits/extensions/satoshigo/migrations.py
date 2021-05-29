@@ -36,9 +36,7 @@ async def m002_initial(db):
         """
         CREATE TABLE IF NOT EXISTS satoshigo_players (
             id TEXT PRIMARY KEY,
-            name TEXT NOT NULL,
-            wallet_id TEXT NOT NULL,
-            wallet_admin TEXT NOT NULL,
+            admin TEXT NOT NULL,
             time TIMESTAMP NOT NULL DEFAULT (strftime('%s', 'now'))
         );
     """

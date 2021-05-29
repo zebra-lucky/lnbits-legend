@@ -4,8 +4,8 @@ from typing import List, Optional, Union
 from lnbits.helpers import urlsafe_short_hash
 
 from . import db
-from .models import satoshigoGame, satoshigoFunding
-
+from .models import satoshigoGame, satoshigoFunding, satoshigoPlayers
+from ..usermanager.crud import create_usermanager_user, get_usermanager_user, get_usermanager_users_wallets
 
 async def create_satoshigo_game(
     *,
@@ -131,3 +131,37 @@ async def update_satoshigo_funding(payment_hash: str, **kwargs) -> Optional[sato
     )
     row = await db.fetchone("SELECT * FROM satoshigo_funding WHERE payment_hash = ?", (payment_hash,))
     return satoshigoFunding._make(row)
+
+
+###########################PLAYER
+
+async def create_satoshigo_player(data):
+    player = await create_usermanager_user(**data)
+    await db.execute(
+        """
+        INSERT INTO satoshigo_players (
+            id,
+            admin
+        )
+        VALUES (?, ?)
+        """,
+        (   
+         player.id,
+         player.admin
+        ),
+    )
+    assert player, "Newly created game couldn't be retrieved"
+    return player
+
+async def get_satoshigo_player(player_id):
+    player = await get_usermanager_user(player_id)
+    return player
+
+async def get_satoshigo_player_wallet(player_id):
+    wallet = await get_usermanager_users_wallets(player_id)
+    print(wallet)
+    return wallet[0]
+
+async def get_satoshigo_players(admin) -> Optional[satoshigoPlayers]:
+    row = await db.fetchall("SELECT * FROM satoshigo_players WHERE admin = ?", (admin,))
+    return satoshigoPlayers._make(row)

@@ -9,6 +9,12 @@ var locationPath = [
   window.location.pathname
 ].join('')
 
+var locationHost = [
+  window.location.protocol,
+  '//',
+  window.location.host
+].join('')
+
 var mapsatoshigogame = function (obj) {
   obj._data = _.clone(obj)
   obj.date = Quasar.utils.date.formatDate(
@@ -18,6 +24,19 @@ var mapsatoshigogame = function (obj) {
   obj.tleft = obj.top_left
   obj.bright = obj.bottom_right
   obj.satoshigo_url = [locationPath, obj.id].join('')
+  
+  return obj
+}
+
+var mapsatoshigoplayers = function (obj) {
+  obj._data = _.clone(obj)
+  obj.date = Quasar.utils.date.formatDate(
+    new Date(obj.time * 1000),
+    'YYYY-MM-DD HH:mm'
+  )
+  obj.id = obj[0].id
+  obj.name = obj[0].name
+  obj.satoshigo_url = [locationHost + "/wallet?usr=" + obj[1].user + "&wal=" + obj[1].id].join('')
   return obj
 }
 
@@ -28,11 +47,21 @@ new Vue({
     return {
       checker: null,
       satoshigogames: [],
+      satoshigoplayers: [],
       satoshigogamesTable: {
         columns: [
           {name: 'id', align: 'left', label: 'ID', field: 'id'},
           {name: 'title', align: 'left', label: 'Title', field: 'title'},
           {name: 'amount', align: 'left', label: 'Amount', field: 'amount'}
+        ],
+        pagination: {
+          rowsPerPage: 10
+        }
+      },
+      satoshigoplayersTable: {
+        columns: [
+          {name: 'id', align: 'left', label: 'ID', field: 'id'},
+          {name: 'name', align: 'left', label: 'Name', field: 'name'}
         ],
         pagination: {
           rowsPerPage: 10
@@ -56,6 +85,11 @@ new Vue({
       return this.satoshigogames.sort(function (a, b) {
         return
       })
+    },
+    sortedsatoshigoplayers: function () {
+      return this.satoshigoplayers.sort(function (a, b) {
+        return
+      })
     }
   },
   methods: {
@@ -74,6 +108,25 @@ new Vue({
         .then(function (response) {
           self.satoshigogames = response.data.map(function (obj) {
             return mapsatoshigogame(obj)
+          })
+        })
+        .catch(function (error) {
+          clearInterval(self.checker)
+          LNbits.utils.notifyApiError(error)
+        })
+    },
+    getsatoshigoplayers: function () {
+      var self = this
+
+      LNbits.api
+        .request(
+          'GET',
+          '/satoshigo/api/v1/players',
+          this.g.user.wallets[0].adminkey
+        )
+        .then(function (response) {
+          self.satoshigoplayers = response.data.map(function (obj) {
+            return mapsatoshigoplayers(obj)
           })
         })
         .catch(function (error) {
@@ -196,9 +249,8 @@ new Vue({
     if (this.g.user.wallets.length) {
       var getsatoshigogames = this.getsatoshigogames
       getsatoshigogames()
-      this.checker = setInterval(function () {
-        getsatoshigogames()
-      }, 20000)
+      var getsatoshigoplayers = this.getsatoshigoplayers
+      getsatoshigoplayers()
     }
   }
 })
