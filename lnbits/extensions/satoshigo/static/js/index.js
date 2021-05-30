@@ -30,6 +30,7 @@ var mapsatoshigoplayers = function (obj) {
   obj._data = _.clone(obj)
   obj.inkey = obj.inkey
   obj.name = obj.user_name
+  obj.game_id = obj.game_id
   return obj
 }
 
@@ -54,7 +55,8 @@ new Vue({
       satoshigoplayersTable: {
         columns: [
           {name: 'inkey', align: 'left', label: 'ID', field: 'inkey'},
-          {name: 'user_name', align: 'left', label: 'Name', field: 'user_name'}
+          {name: 'user_name', align: 'left', label: 'Name', field: 'user_name'},
+          {name: 'game_id', align: 'left', label: 'Game ID', field: 'game_id'}
         ],
         pagination: {
           rowsPerPage: 10
