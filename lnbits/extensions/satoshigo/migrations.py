@@ -31,7 +31,7 @@ async def m002_initial(db):
         );
     """
     )
-async def m002_initial(db):
+async def m003_initial(db):
     await db.execute(
         """
         CREATE TABLE IF NOT EXISTS satoshigo_players (

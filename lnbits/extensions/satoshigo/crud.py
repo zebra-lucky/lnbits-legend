@@ -112,7 +112,7 @@ async def create_satoshigo_funding(
         ),
     )
     funding = await get_satoshigo_funding(funding_id)
-    assert funding, "Newly created game couldn't be retrieved"
+    assert funding, "Newly created funding couldn't be retrieved"
     return funding
 
 async def get_satoshigo_funding(funding_id: str) -> Optional[satoshigoFunding]:
