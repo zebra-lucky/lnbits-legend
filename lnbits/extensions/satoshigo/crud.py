@@ -4,7 +4,7 @@ from typing import List, Optional, Union
 from lnbits.helpers import urlsafe_short_hash
 
 from . import db
-from .models import satoshigoGame, satoshigoFunding, satoshigoPlayers
+from .models import satoshigoGame, satoshigoFunding, satoshigoPlayer, satoshigoPlayers
 
 from lnbits.core.crud import (
     create_account,
@@ -161,7 +161,7 @@ async def create_satoshigo_player(user_name: str):
 
     await db.execute(
         """
-        INSERT INTO satoshigo_player (id, name, walletid, adminkey, inkey)
+        INSERT INTO satoshigo_player (id, user_name, walletid, adminkey, inkey)
         VALUES (?, ?, ?, ?, ?)
         """,
         (user.id, user_name, wallet.id, wallet.adminkey, wallet.inkey),
@@ -185,25 +185,29 @@ async def get_satoshigo_player(user_id: str) -> Optional[satoshigoPlayer]:
 
 async def get_satoshigo_player_inkey(inkey: str) -> Optional[satoshigoPlayer]:
     row = await db.fetchone("SELECT * FROM satoshigo_player WHERE inkey = ?", (inkey,))
-    return row.name
+    return row
 
 
 ###########################REGISTER
 
 
 async def register_satoshigo_players(inkey: str, game_id: str):
-    user_name = await get_satoshigo_player_inkey(inkey)
+    row = await get_satoshigo_player_inkey(inkey)
     await db.execute(
         """
         INSERT INTO satoshigo_players (inkey, game_id, user_name)
         VALUES (?, ?, ?)
         """,
-        (inkey, game_id, user_name),
+        (inkey, game_id, row.user_name),
     )
-    player = await get_satoshigo_player(inkey)
+    player = await get_satoshigo_player(row.id)
     return player
 
 
 async def get_satoshigo_players(inkey: str) -> Optional[satoshigoPlayers]:
     row = await db.fetchone("SELECT * FROM satoshigo_players WHERE inkey = ?", (inkey,))
     return satoshigoPlayers._make(row)
+
+async def get_satoshigo_players_gameid(game_id: str) -> Optional[satoshigoPlayers]:
+    rows = await db.fetchall("SELECT * FROM satoshigo_players WHERE game_id = ?", (game_id,))
+    return [satoshigoPlayers._make(row) for row in rows]

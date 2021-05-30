@@ -20,8 +20,8 @@ from .crud import (
     get_satoshigo_player,
     get_satoshigo_players,
     update_satoshigo_player,
-    get_satoshigo_player_wallet,
     register_satoshigo_players,
+    get_satoshigo_players_gameid
 )
 from ...core.services import create_invoice, check_invoice_status
 
@@ -195,12 +195,33 @@ async def api_game_player_get(player_id):
 
 
 @satoshigo_ext.route("/api/v1/games/<game_id>/enter", methods=["POST"])
-async def api_game_enter(game_id):
 @api_validate_post_request(
     schema={
         "inkey": {"type": "string", "empty": False, "required": True}
     }
 )
-    registered = await register_satoshigo_players(inkey, game_id)
+async def api_game_enter(game_id):
 
-    return jsonify(registered), HTTPStatus.CREATED
+    registered = await register_satoshigo_players(g.data['inkey'], game_id)
+    return jsonify(registered._asdict()), HTTPStatus.CREATED
+
+@satoshigo_ext.route("/api/v1/games/players", methods=["GET"])
+@api_check_wallet_key("inkey")
+async def api_games_players():
+    wallet_ids = [g.wallet.id]
+    if "all_wallets" in request.args:
+        wallet_ids = (await get_user(g.wallet.user)).wallet_ids
+    
+    playerss = []
+    
+    for game in await get_satoshigo_games(wallet_ids):
+        if not game:
+            return jsonify({"message": "Game does not exist."}), HTTPStatus.NOT_FOUND
+        else:
+            for players in await get_satoshigo_players_gameid(game.id):
+                for player in players:
+                    playerss.append(player)
+    return (
+        jsonify([playerr._asdict() for playerr in playerss]),
+        HTTPStatus.OK,
+    )

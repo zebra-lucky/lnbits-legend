@@ -9,11 +9,9 @@ var locationPath = [
   window.location.pathname
 ].join('')
 
-var locationHost = [
-  window.location.protocol,
-  '//',
-  window.location.host
-].join('')
+var locationHost = [window.location.protocol, '//', window.location.host].join(
+  ''
+)
 
 var mapsatoshigogame = function (obj) {
   obj._data = _.clone(obj)
@@ -24,7 +22,7 @@ var mapsatoshigogame = function (obj) {
   obj.tleft = obj.top_left
   obj.bright = obj.bottom_right
   obj.satoshigo_url = [locationPath, obj.id].join('')
-  
+
   return obj
 }
 
@@ -34,9 +32,8 @@ var mapsatoshigoplayers = function (obj) {
     new Date(obj.time * 1000),
     'YYYY-MM-DD HH:mm'
   )
-  obj.id = obj[0].id
+  obj.inkey = obj[0].inkey
   obj.name = obj[0].name
-  obj.satoshigo_url = [locationHost + "/wallet?usr=" + obj[1].user + "&wal=" + obj[1].id].join('')
   return obj
 }
 
@@ -60,8 +57,8 @@ new Vue({
       },
       satoshigoplayersTable: {
         columns: [
-          {name: 'id', align: 'left', label: 'ID', field: 'id'},
-          {name: 'name', align: 'left', label: 'Name', field: 'name'}
+          {name: 'inkey', align: 'left', label: 'ID', field: 'inkey'},
+          {name: 'user_name', align: 'left', label: 'Name', field: 'user_name'}
         ],
         pagination: {
           rowsPerPage: 10
@@ -80,7 +77,6 @@ new Vue({
     }
   },
   computed: {
-
     sortedsatoshigogames: function () {
       return this.satoshigogames.sort(function (a, b) {
         return
@@ -94,7 +90,7 @@ new Vue({
   },
   methods: {
     test: function () {
-      console.log("poo")
+      console.log('poo')
     },
     getsatoshigogames: function () {
       var self = this
@@ -121,8 +117,8 @@ new Vue({
       LNbits.api
         .request(
           'GET',
-          '/satoshigo/api/v1/players',
-          this.g.user.wallets[0].adminkey
+          '/satoshigo/api/v1/games/players',
+          this.g.user.wallets[0].inkey
         )
         .then(function (response) {
           self.satoshigoplayers = response.data.map(function (obj) {
@@ -186,12 +182,7 @@ new Vue({
           'PUT',
           '/satoshigo/api/v1/games/' + data.id,
           wallet.adminkey,
-          _.pick(
-            data,
-            'title',
-            'top_left',
-            'bottom_right'
-          )
+          _.pick(data, 'title', 'top_left', 'bottom_right')
         )
         .then(function (response) {
           self.satoshigogames = _.reject(self.satoshigogames, function (obj) {
@@ -232,9 +223,12 @@ new Vue({
               _.findWhere(self.g.user.wallets, {id: game.wallet}).adminkey
             )
             .then(function (response) {
-              self.satoshigogames = _.reject(self.satoshigogames, function (obj) {
-                return obj.id === gameId
-              })
+              self.satoshigogames = _.reject(
+                self.satoshigogames,
+                function (obj) {
+                  return obj.id === gameId
+                }
+              )
             })
             .catch(function (error) {
               LNbits.utils.notifyApiError(error)
