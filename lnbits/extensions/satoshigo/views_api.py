@@ -107,7 +107,6 @@ async def api_game_delete(game_id):
 
 ###################################### FUNDING STUFF
 
-
 @satoshigo_ext.route("/api/v1/funding/", methods=["POST"])
 @api_validate_post_request(
     schema={
@@ -164,7 +163,6 @@ async def api_game_check_funding(satoshigo_id, payment_hash):
 
 ###################################### PLAYER STUFF
 
-
 @satoshigo_ext.route("/api/v1/players", methods=["POST"])
 @api_validate_post_request(
     schema={"user_name": {"type": "string", "empty": False, "required": True}}
@@ -193,7 +191,6 @@ async def api_game_player_get(player_id):
 
 ###################################### REGISTER USER
 
-
 @satoshigo_ext.route("/api/v1/games/<game_id>/enter", methods=["POST"])
 @api_validate_post_request(
     schema={
@@ -201,7 +198,6 @@ async def api_game_player_get(player_id):
     }
 )
 async def api_game_enter(game_id):
-
     registered = await register_satoshigo_players(g.data['inkey'], game_id)
     return jsonify(registered._asdict()), HTTPStatus.CREATED
 
@@ -211,17 +207,9 @@ async def api_games_players():
     wallet_ids = [g.wallet.id]
     if "all_wallets" in request.args:
         wallet_ids = (await get_user(g.wallet.user)).wallet_ids
-    
-    playerss = []
-    
     for game in await get_satoshigo_games(wallet_ids):
         if not game:
             return jsonify({"message": "Game does not exist."}), HTTPStatus.NOT_FOUND
         else:
-            for players in await get_satoshigo_players_gameid(game.id):
-                for player in players:
-                    playerss.append(player)
-    return (
-        jsonify([playerr._asdict() for playerr in playerss]),
-        HTTPStatus.OK,
-    )
+            return jsonify([players._asdict() for players in await get_satoshigo_players_gameid(game.id)]),HTTPStatus.OK
+    

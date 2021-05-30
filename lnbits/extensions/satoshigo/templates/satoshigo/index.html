@@ -114,20 +114,7 @@
           </template>
           <template v-slot:body="props">
             <q-tr :props="props">
-              <q-td auto-width>
-                <q-btn
-                  unelevated
-                  dense
-                  size="xs"
-                  icon="launch"
-                  :color="($q.dark.isActive) ? 'grey-7' : 'grey-5'"
-                  type="a"
-                  :href="props.row.satoshigo_url"
-                  target="_blank"
-                >
-                  <q-tooltip> players wallet </q-tooltip></q-btn
-                >
-              </q-td>
+              <q-td auto-width> </q-td>
               <q-td v-for="col in props.cols" :key="col.name" :props="props">
                 {{ col.value }}
               </q-td>

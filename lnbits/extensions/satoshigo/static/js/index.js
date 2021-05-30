@@ -28,12 +28,8 @@ var mapsatoshigogame = function (obj) {
 
 var mapsatoshigoplayers = function (obj) {
   obj._data = _.clone(obj)
-  obj.date = Quasar.utils.date.formatDate(
-    new Date(obj.time * 1000),
-    'YYYY-MM-DD HH:mm'
-  )
-  obj.inkey = obj[0].inkey
-  obj.name = obj[0].name
+  obj.inkey = obj.inkey
+  obj.name = obj.user_name
   return obj
 }
 
@@ -121,6 +117,7 @@ new Vue({
           this.g.user.wallets[0].inkey
         )
         .then(function (response) {
+          console.log(response.data)
           self.satoshigoplayers = response.data.map(function (obj) {
             return mapsatoshigoplayers(obj)
           })

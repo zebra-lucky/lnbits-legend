@@ -192,15 +192,22 @@ async def get_satoshigo_player_inkey(inkey: str) -> Optional[satoshigoPlayer]:
 
 
 async def register_satoshigo_players(inkey: str, game_id: str):
-    row = await get_satoshigo_player_inkey(inkey)
-    await db.execute(
-        """
-        INSERT INTO satoshigo_players (inkey, game_id, user_name)
-        VALUES (?, ?, ?)
-        """,
-        (inkey, game_id, row.user_name),
-    )
-    player = await get_satoshigo_player(row.id)
+    player = await get_satoshigo_players(inkey)
+    if not player:
+        row = await get_satoshigo_player_inkey(inkey)
+        await db.execute(
+            """
+            INSERT INTO satoshigo_players (inkey, game_id, user_name)
+            VALUES (?, ?, ?)
+            """,
+            (inkey, game_id, row.user_name),
+        )
+    else:
+        await db.execute(
+        "UPDATE satoshigo_players SET game_id = ? WHERE inkey = ?",
+        (game_id, inkey),
+        )
+    player = await get_satoshigo_players(inkey)
     return player
 
 
