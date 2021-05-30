@@ -192,8 +192,8 @@ async def get_satoshigo_player_inkey(inkey: str) -> Optional[satoshigoPlayer]:
 
 
 async def register_satoshigo_players(inkey: str, game_id: str):
-    player = await get_satoshigo_players(inkey)
-    if not player:
+    row = await db.fetchone("SELECT * FROM satoshigo_players WHERE inkey = ?", (inkey,))
+    if not row:
         row = await get_satoshigo_player_inkey(inkey)
         await db.execute(
             """

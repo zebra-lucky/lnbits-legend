@@ -202,8 +202,8 @@
         >
         <h5 class="text-caption q-mt-sm q-mb-none">Curl example</h5>
         <code
-          >curl -X GET {{ request.url_root }}api/v1/games/&lt;game_id&gt;/enter
-          -d '{"inkey": &lt;string&gt;}'
+          >curl -X POST {{ request.url_root }}api/v1/games/&lt;game_id&gt;/enter
+          -d '{"inkey": &lt;string&gt;}' -H "Content-type: application/json"
         </code>
       </q-card-section>
     </q-card>
