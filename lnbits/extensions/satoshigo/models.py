@@ -18,6 +18,7 @@ class satoshigoGame(NamedTuple):
     def from_row(cls, row: Row) -> "satoshigoGame":
         return cls(**dict(row))
 
+
 class satoshigoFunding(NamedTuple):
     id: str
     satoshigo_id: str
@@ -31,9 +32,24 @@ class satoshigoFunding(NamedTuple):
     confirmed: bool
     time: int
 
-class satoshigoPlayers(NamedTuple):
+
+class satoshigoPlayer(NamedTuple):
     id: str
-    admin: str
+    user_name: str
+    walletid: str
+    adminkey: str
+    inkey: str
+    time: int
+
+    @classmethod
+    def from_row(cls, row: Row) -> "satoshigoPlayer":
+        return cls(**dict(row))
+
+
+class satoshigoPlayers(NamedTuple):
+    inkey: str
+    game_id: str
+    user_name: str
     time: int
 
     @classmethod

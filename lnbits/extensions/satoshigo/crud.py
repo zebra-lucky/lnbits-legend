@@ -5,7 +5,15 @@ from lnbits.helpers import urlsafe_short_hash
 
 from . import db
 from .models import satoshigoGame, satoshigoFunding, satoshigoPlayers
-from ..usermanager.crud import create_usermanager_user, get_usermanager_user, get_usermanager_users_wallets
+
+from lnbits.core.crud import (
+    create_account,
+    get_user,
+    get_payments,
+    create_wallet,
+    delete_wallet,
+)
+
 
 async def create_satoshigo_game(
     *,
@@ -27,16 +35,7 @@ async def create_satoshigo_game(
         )
         VALUES (?, ?, ?, ?, ?, ?, ?)
         """,
-        (
-            game_id,
-            wallet,
-            wallet_key,
-            title,
-            "",
-            0,
-            random.randint(999, 9999)
-
-        ),
+        (game_id, wallet, wallet_key, title, "", 0, random.randint(999, 9999)),
     )
     game = await get_satoshigo_game(game_id)
     assert game, "Newly created game couldn't be retrieved"
@@ -53,14 +52,18 @@ async def get_satoshigo_games(wallet_ids: Union[str, List[str]]) -> List[satoshi
         wallet_ids = [wallet_ids]
 
     q = ",".join(["?"] * len(wallet_ids))
-    rows = await db.fetchall(f"SELECT * FROM satoshigo_game WHERE wallet IN ({q})", (*wallet_ids,))
+    rows = await db.fetchall(
+        f"SELECT * FROM satoshigo_game WHERE wallet IN ({q})", (*wallet_ids,)
+    )
 
     return [satoshigoGame.from_row(row) for row in rows]
 
 
 async def update_satoshigo_game(game_id: str, **kwargs) -> Optional[satoshigoGame]:
     q = ", ".join([f"{field[0]} = ?" for field in kwargs.items()])
-    await db.execute(f"UPDATE satoshigo_game SET {q} WHERE id = ?", (*kwargs.values(), game_id))
+    await db.execute(
+        f"UPDATE satoshigo_game SET {q} WHERE id = ?", (*kwargs.values(), game_id)
+    )
     row = await db.fetchone("SELECT * FROM satoshigo_game WHERE id = ?", (game_id,))
     return satoshigoGame.from_row(row) if row else None
 
@@ -68,7 +71,9 @@ async def update_satoshigo_game(game_id: str, **kwargs) -> Optional[satoshigoGam
 async def delete_satoshigo_game(game_id: str) -> None:
     await db.execute("DELETE FROM satoshigo_game WHERE id = ?", (game_id,))
 
+
 ###############
+
 
 async def create_satoshigo_funding(
     *,
@@ -79,7 +84,7 @@ async def create_satoshigo_funding(
     btlat: str,
     btlon: str,
     amount: int,
-    payment_hash: str
+    payment_hash: str,
 ) -> satoshigoGame:
     funding_id = urlsafe_short_hash()
     await db.execute(
@@ -98,7 +103,7 @@ async def create_satoshigo_funding(
         )
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
-        (   
+        (
             funding_id,
             game_id,
             wallet,
@@ -108,59 +113,97 @@ async def create_satoshigo_funding(
             btlon,
             amount,
             payment_hash,
-            False
+            False,
         ),
     )
     funding = await get_satoshigo_funding(funding_id)
     assert funding, "Newly created funding couldn't be retrieved"
     return funding
 
+
 async def get_satoshigo_funding(funding_id: str) -> Optional[satoshigoFunding]:
-    row = await db.fetchone("SELECT * FROM satoshigo_funding WHERE id = ?", (funding_id,))
+    row = await db.fetchone(
+        "SELECT * FROM satoshigo_funding WHERE id = ?", (funding_id,)
+    )
     return satoshigoFunding._make(row)
 
 
 async def get_satoshigo_fundings(game_id: str) -> Optional[satoshigoFunding]:
-    row = await db.fetchall("SELECT * FROM satoshigo_funding WHERE game_id = ?", (game_id,))
+    row = await db.fetchall(
+        "SELECT * FROM satoshigo_funding WHERE game_id = ?", (game_id,)
+    )
     return satoshigoFunding._make(row)
 
-async def update_satoshigo_funding(payment_hash: str, **kwargs) -> Optional[satoshigoFunding]:
+
+async def update_satoshigo_funding(
+    payment_hash: str, **kwargs
+) -> Optional[satoshigoFunding]:
     q = ", ".join([f"{field[0]} = ?" for field in kwargs.items()])
     await db.execute(
-        f"UPDATE satoshigo_funding SET {q} WHERE payment_hash = ?", (*kwargs.values(), payment_hash)
+        f"UPDATE satoshigo_funding SET {q} WHERE payment_hash = ?",
+        (*kwargs.values(), payment_hash),
     )
-    row = await db.fetchone("SELECT * FROM satoshigo_funding WHERE payment_hash = ?", (payment_hash,))
+    row = await db.fetchone(
+        "SELECT * FROM satoshigo_funding WHERE payment_hash = ?", (payment_hash,)
+    )
     return satoshigoFunding._make(row)
 
 
 ###########################PLAYER
 
-async def create_satoshigo_player(data):
-    player = await create_usermanager_user(**data)
+
+async def create_satoshigo_player(user_name: str):
+    account = await create_account()
+    user = await get_user(account.id)
+    assert user, "Newly created user couldn't be retrieved"
+
+    wallet = await create_wallet(user_id=user.id, wallet_name="satsgo")
+
     await db.execute(
         """
-        INSERT INTO satoshigo_players (
-            id,
-            admin
-        )
-        VALUES (?, ?)
+        INSERT INTO satoshigo_player (id, name, walletid, adminkey, inkey)
+        VALUES (?, ?, ?, ?, ?)
         """,
-        (   
-         player.id,
-         player.admin
-        ),
+        (user.id, user_name, wallet.id, wallet.adminkey, wallet.inkey),
     )
-    assert player, "Newly created game couldn't be retrieved"
+    player = await get_satoshigo_player(user.id)
     return player
 
-async def get_satoshigo_player(player_id):
-    player = await get_usermanager_user(player_id)
+
+async def update_satoshigo_player(user_name: str, user_id: str):
+    await db.execute(
+        "UPDATE satoshigo_player SET name = ? WHERE id = ?",
+        (user_name, user_id),
+    )
+    return await get_satoshigo_player(user_id)
+
+
+async def get_satoshigo_player(user_id: str) -> Optional[satoshigoPlayer]:
+    row = await db.fetchone("SELECT * FROM satoshigo_player WHERE id = ?", (user_id,))
+    return satoshigoPlayer._make(row)
+
+
+async def get_satoshigo_player_inkey(inkey: str) -> Optional[satoshigoPlayer]:
+    row = await db.fetchone("SELECT * FROM satoshigo_player WHERE inkey = ?", (inkey,))
+    return row.name
+
+
+###########################REGISTER
+
+
+async def register_satoshigo_players(inkey: str, game_id: str):
+    user_name = await get_satoshigo_player_inkey(inkey)
+    await db.execute(
+        """
+        INSERT INTO satoshigo_players (inkey, game_id, user_name)
+        VALUES (?, ?, ?)
+        """,
+        (inkey, game_id, user_name),
+    )
+    player = await get_satoshigo_player(inkey)
     return player
 
-async def get_satoshigo_player_wallet(player_id):
-    wallet = await get_usermanager_users_wallets(player_id)
-    return wallet
 
-async def get_satoshigo_players(admin) -> Optional[satoshigoPlayers]:
-    rows = await db.fetchall("SELECT * FROM satoshigo_players WHERE admin = ?", (admin,))
-    return [satoshigoPlayers._make(row) for row in rows]
+async def get_satoshigo_players(inkey: str) -> Optional[satoshigoPlayers]:
+    row = await db.fetchone("SELECT * FROM satoshigo_players WHERE inkey = ?", (inkey,))
+    return satoshigoPlayers._make(row)

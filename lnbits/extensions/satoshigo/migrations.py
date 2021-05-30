@@ -13,6 +13,8 @@ async def m001_initial(db):
         );
     """
     )
+
+
 async def m002_initial(db):
     await db.execute(
         """
@@ -31,12 +33,30 @@ async def m002_initial(db):
         );
     """
     )
+
+
 async def m003_initial(db):
     await db.execute(
         """
-        CREATE TABLE IF NOT EXISTS satoshigo_players (
+        CREATE TABLE IF NOT EXISTS satoshigo_player (
             id TEXT PRIMARY KEY,
-            admin TEXT NOT NULL,
+            user_name TEXT NOT NULL,
+            walletid TEXT NOT NULL,
+            adminkey TEXT NOT NULL,
+            inkey TEXT NOT NULL,
+            time TIMESTAMP NOT NULL DEFAULT (strftime('%s', 'now'))
+        );
+    """
+    )
+
+
+async def m004_initial(db):
+    await db.execute(
+        """
+        CREATE TABLE IF NOT EXISTS satoshigo_players (
+            inkey TEXT PRIMARY KEY,
+            game_id TEXT NOT NULL,
+            user_name TEXT NOT NULL,
             time TIMESTAMP NOT NULL DEFAULT (strftime('%s', 'now'))
         );
     """
