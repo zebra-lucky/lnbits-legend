@@ -23,3 +23,33 @@ async def test():
 async def display(game_id):
     game = await get_satoshigo_game(game_id) or abort(HTTPStatus.NOT_FOUND, "satoshigo game does not exist.")
     return await render_template("satoshigo/display.html", gameAmount=game.amount, game_id=game_id)
+
+
+
+##################WEBSOCKET ROUTES########################
+
+# socket_relay is a list where the control panel or
+# lnurl endpoints can leave a message for the compose window
+
+socket_relay = {}
+
+
+@copilot_ext.websocket("/ws/panel/<copilot_id>")
+async def ws_panel(copilot_id):
+    global socket_relay
+    while True:
+        data = await websocket.receive()
+        socket_relay[copilot_id] = shortuuid.uuid()[:5] + "-" + data + "-" + "none"
+
+
+@copilot_ext.websocket("/ws/compose/<copilot_id>")
+async def ws_compose(copilot_id):
+    global socket_relay
+    while True:
+        data = await websocket.receive()
+        await websocket.send(socket_relay[copilot_id])
+
+
+async def updater(data, comment, copilot):
+    global socket_relay
+    socket_relay[copilot] = shortuuid.uuid()[:5] + "-" + str(data) + "-" + str(comment)
