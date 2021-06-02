@@ -1,9 +1,9 @@
 from quart import g, jsonify, request
 from http import HTTPStatus
-from lnurl.exceptions import InvalidUrl as LnurlInvalidUrl  # type: ignore
 
 from lnbits.core.crud import get_user
 from lnbits.decorators import api_check_wallet_key, api_validate_post_request
+import random
 
 from . import satoshigo_ext
 from .crud import (
@@ -21,20 +21,34 @@ from .crud import (
     get_satoshigo_players,
     update_satoshigo_player,
     register_satoshigo_players,
-    get_satoshigo_players_gameid
+    get_satoshigo_players_gameid,
+    get_satoshigo_admin_games,
+    cAreaMaker,
+    get_satoshigo_areas,
+    get_satoshigo_area,
 )
 from ...core.services import create_invoice, check_invoice_status
 
 
-@satoshigo_ext.route("/api/v1/games", methods=["GET"])
+@satoshigo_ext.route("/api/v1/admin/games", methods=["GET"])
 @api_check_wallet_key("invoice")
-async def api_games():
+async def api_admin_games():
     wallet_ids = [g.wallet.id]
     if "all_wallets" in request.args:
         wallet_ids = (await get_user(g.wallet.user)).wallet_ids
 
     return (
-        jsonify([game._asdict() for game in await get_satoshigo_games(wallet_ids)]),
+        jsonify(
+            [game._asdict() for game in await get_satoshigo_admin_games(wallet_ids)]
+        ),
+        HTTPStatus.OK,
+    )
+
+
+@satoshigo_ext.route("/api/v1/games", methods=["GET"])
+async def api_games():
+    return (
+        jsonify([game._asdict() for game in await get_satoshigo_games()]),
         HTTPStatus.OK,
     )
 
@@ -105,16 +119,17 @@ async def api_game_delete(game_id):
     return "", HTTPStatus.NO_CONTENT
 
 
-###################################### FUNDING STUFF
+###################################### funding STUFF
+
 
 @satoshigo_ext.route("/api/v1/funding/", methods=["POST"])
 @api_validate_post_request(
     schema={
         "game_id": {"type": "string", "empty": False, "required": True},
-        "tplat": {"type": "string", "empty": False, "required": True},
-        "tplon": {"type": "string", "empty": False, "required": True},
-        "btlat": {"type": "string", "empty": False, "required": True},
-        "btlon": {"type": "string", "empty": False, "required": True},
+        "tplat": {"type": "integer", "empty": False, "required": True},
+        "tplon": {"type": "integer", "empty": False, "required": True},
+        "btlat": {"type": "integer", "empty": False, "required": True},
+        "btlon": {"type": "integer", "empty": False, "required": True},
         "sats": {"type": "integer", "empty": False, "required": True},
     }
 )
@@ -155,13 +170,46 @@ async def api_game_check_funding(satoshigo_id, payment_hash):
         return jsonify({"message": "Game does not exist."}), HTTPStatus.NOT_FOUND
     if check.paid:
         funding = await update_satoshigo_funding(payment_hash, confirmed=True)
+        await cAreaMaker(
+            funding.amount, funding.tplon, funding.tplat, funding.btlon, funding.btlat
+        )
         await update_satoshigo_game(game.id, amount=game.amount + funding.amount)
         return jsonify({**check._asdict()}), HTTPStatus.OK
 
     return jsonify({**check._asdict()}), HTTPStatus.OK
 
 
+@satoshigo_ext.route("/api/v1/funding/<funding_id>", methods=["GET"])
+async def api_game_funding(funding_id):
+    funding = await get_satoshigo_funding(funding_id)
+    return jsonify(funding._asdict()), HTTPStatus.OK
+
+
+###################################### cAREAS
+
+
+@satoshigo_ext.route("/api/v1/find/areas", methods=["POST"])
+@api_validate_post_request(
+    schema={
+        "lon": {"type": "integer", "empty": False, "required": True},
+        "lat": {"type": "integer", "empty": False, "required": True},
+        "radius": {"type": "integer", "empty": False, "required": True},
+    }
+)
+async def api_game_get_areas():
+    areas = await get_satoshigo_areas(g.data)
+
+    return jsonify([area._asdict() for area in areas]), HTTPStatus.OK
+
+
+@satoshigo_ext.route("/api/v1/find/areas/<area_id>", methods=["GET"])
+async def api_game_get_area(area_id):
+    area = await get_satoshigo_area(area_id)
+    return jsonify(area._asdict()), HTTPStatus.OK
+
+
 ###################################### PLAYER STUFF
+
 
 @satoshigo_ext.route("/api/v1/players", methods=["POST"])
 @api_validate_post_request(
@@ -182,24 +230,23 @@ async def api_game_player_update(player_id):
     return jsonify(player._asdict()), HTTPStatus.CREATED
 
 
-@satoshigo_ext.route("/api/v1/players", methods=["GET"])
-@api_check_wallet_key("admin")
+@satoshigo_ext.route("/api/v1/players/<player_id>", methods=["GET"])
 async def api_game_player_get(player_id):
     player = await get_satoshigo_player(player_id)
     return jsonify(player._asdict()), HTTPStatus.CREATED
 
 
-###################################### REGISTER USER
+###################################### ENTER GAME
+
 
 @satoshigo_ext.route("/api/v1/games/<game_id>/enter", methods=["POST"])
 @api_validate_post_request(
-    schema={
-        "inkey": {"type": "string", "empty": False, "required": True}
-    }
+    schema={"inkey": {"type": "string", "empty": False, "required": True}}
 )
 async def api_game_enter(game_id):
-    registered = await register_satoshigo_players(g.data['inkey'], game_id)
+    registered = await register_satoshigo_players(g.data["inkey"], game_id)
     return jsonify(registered._asdict()), HTTPStatus.CREATED
+
 
 @satoshigo_ext.route("/api/v1/games/players", methods=["GET"])
 @api_check_wallet_key("inkey")
@@ -207,9 +254,17 @@ async def api_games_players():
     wallet_ids = [g.wallet.id]
     if "all_wallets" in request.args:
         wallet_ids = (await get_user(g.wallet.user)).wallet_ids
-    for game in await get_satoshigo_games(wallet_ids):
-        if not game:
-            return jsonify({"message": "Game does not exist."}), HTTPStatus.NOT_FOUND
+    for game in await get_satoshigo_admin_games(wallet_ids):
+        if not game.id:
+            return jsonify(), HTTPStatus.OK
         else:
-            return jsonify([players._asdict() for players in await get_satoshigo_players_gameid(game.id)]),HTTPStatus.OK
-    
+            return (
+                jsonify(
+                    [
+                        players._asdict()
+                        for players in await get_satoshigo_players_gameid(game.id)
+                    ]
+                ),
+                HTTPStatus.OK,
+            )
+    return jsonify(), HTTPStatus.OK

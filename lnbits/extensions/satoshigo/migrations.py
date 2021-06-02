@@ -22,10 +22,10 @@ async def m002_initial(db):
             id TEXT PRIMARY KEY,
             satoshigo_id TEXT NOT NULL,
             wallet TEXT NOT NULL,
-            tplat TEXT NOT NULL,
-            tplon TEXT NOT NULL,
-            btlat TEXT NOT NULL,
-            btlon TEXT NOT NULL,
+            tplat INTEGER NOT NULL,
+            tplon INTEGER NOT NULL,
+            btlat INTEGER NOT NULL,
+            btlon INTEGER NOT NULL,
             amount INTEGER NOT NULL,
             payment_hash TEXT NOT NULL,
             confirmed BOOLEAN DEFAULT 0,
@@ -57,6 +57,20 @@ async def m004_initial(db):
             inkey TEXT PRIMARY KEY,
             game_id TEXT NOT NULL,
             user_name TEXT NOT NULL,
+            time TIMESTAMP NOT NULL DEFAULT (strftime('%s', 'now'))
+        );
+    """
+    )
+
+
+async def m005_initial(db):
+    await db.execute(
+        """
+        CREATE TABLE IF NOT EXISTS satoshigo_areas (
+            id TEXT PRIMARY KEY,
+            lng INTEGER NOT NULL,
+            lat INTEGER NOT NULL,
+            pot INTEGER NOT NULL,
             time TIMESTAMP NOT NULL DEFAULT (strftime('%s', 'now'))
         );
     """

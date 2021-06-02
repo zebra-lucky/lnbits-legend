@@ -4,7 +4,13 @@ from typing import List, Optional, Union
 from lnbits.helpers import urlsafe_short_hash
 
 from . import db
-from .models import satoshigoGame, satoshigoFunding, satoshigoPlayer, satoshigoPlayers
+from .models import (
+    satoshigoGame,
+    satoshigoFunding,
+    satoshigoPlayer,
+    satoshigoPlayers,
+    satoshigoAreas,
+)
 
 from lnbits.core.crud import (
     create_account,
@@ -47,7 +53,16 @@ async def get_satoshigo_game(game_id: str) -> Optional[satoshigoGame]:
     return satoshigoGame._make(row)
 
 
-async def get_satoshigo_games(wallet_ids: Union[str, List[str]]) -> List[satoshigoGame]:
+async def get_satoshigo_games() -> List[satoshigoGame]:
+
+    rows = await db.fetchall("SELECT * FROM satoshigo_game", "")
+
+    return [satoshigoGame.from_row(row) for row in rows]
+
+
+async def get_satoshigo_admin_games(
+    wallet_ids: Union[str, List[str]]
+) -> List[satoshigoGame]:
     if isinstance(wallet_ids, str):
         wallet_ids = [wallet_ids]
 
@@ -79,10 +94,10 @@ async def create_satoshigo_funding(
     *,
     game_id: str,
     wallet: str,
-    tplat: str,
-    tplon: str,
-    btlat: str,
-    btlon: str,
+    tplat: int,
+    tplon: int,
+    btlat: int,
+    btlon: int,
     amount: int,
     payment_hash: str,
 ) -> satoshigoGame:
@@ -172,7 +187,7 @@ async def create_satoshigo_player(user_name: str):
 
 async def update_satoshigo_player(user_name: str, user_id: str):
     await db.execute(
-        "UPDATE satoshigo_player SET name = ? WHERE id = ?",
+        "UPDATE satoshigo_player SET user_name = ? WHERE id = ?",
         (user_name, user_id),
     )
     return await get_satoshigo_player(user_id)
@@ -192,7 +207,9 @@ async def get_satoshigo_player_inkey(inkey: str) -> Optional[satoshigoPlayer]:
 
 
 async def register_satoshigo_players(inkey: str, game_id: str):
-    playerCheck = await db.fetchone("SELECT * FROM satoshigo_players WHERE inkey = ?", (inkey,))
+    playerCheck = await db.fetchone(
+        "SELECT * FROM satoshigo_players WHERE inkey = ?", (inkey,)
+    )
     if not playerCheck:
         row = await get_satoshigo_player_inkey(inkey)
         await db.execute(
@@ -204,8 +221,8 @@ async def register_satoshigo_players(inkey: str, game_id: str):
         )
     else:
         await db.execute(
-        "UPDATE satoshigo_players SET game_id = ? WHERE inkey = ?",
-        (game_id, inkey),
+            "UPDATE satoshigo_players SET game_id = ? WHERE inkey = ?",
+            (game_id, inkey),
         )
     player = await get_satoshigo_players(inkey)
     return player
@@ -215,6 +232,92 @@ async def get_satoshigo_players(inkey: str) -> Optional[satoshigoPlayers]:
     row = await db.fetchone("SELECT * FROM satoshigo_players WHERE inkey = ?", (inkey,))
     return satoshigoPlayers._make(row)
 
+
 async def get_satoshigo_players_gameid(game_id: str) -> Optional[satoshigoPlayers]:
-    rows = await db.fetchall("SELECT * FROM satoshigo_players WHERE game_id = ?", (game_id,))
+    rows = await db.fetchall(
+        "SELECT * FROM satoshigo_players WHERE game_id = ?", (game_id,)
+    )
     return [satoshigoPlayers._make(row) for row in rows]
+
+
+#########cAREAS
+
+
+async def cAreaMaker(someSats, tplng, tplat, btlng, btlat):
+    cAreas = []
+    pot = 0
+    numPots = 0
+    if 10 <= someSats <= 50:
+        pot = 4
+    if 50 <= someSats <= 100:
+        pot = 10
+    if 100 <= someSats <= 500:
+        pot = 20
+    if 500 <= someSats <= 1000:
+        pot = 30
+    if 1000 <= someSats <= 5000:
+        pot = 50
+    if 5000 <= someSats <= 10000:
+        pot = 100
+    if 10000 <= someSats <= 100000:
+        pot = 300
+    if someSats >= 100000:
+        pot = 500
+    numPots = int(someSats / pot)
+    lngs = random.sample(range(tplng, btlng), numPots)
+    lats = random.sample(range(tplat, btlat), numPots)
+    for lng in lngs:
+        cAreas.append([lng, lats[lngs.index(lng)], pot])
+        await create_area(lng, lats[lngs.index(lng)], pot)
+    print(cAreas)
+    return cAreas
+
+
+async def create_area(
+    lng: int,
+    lat: int,
+    pot: int,
+):
+    area_id = urlsafe_short_hash()
+    await db.execute(
+        """
+        INSERT INTO satoshigo_area (id, lng, lat, pot)
+        VALUES (?, ?, ?, ?)
+        """,
+        (area_id, int(lng), int(lat), int(pot)),
+    )
+    return ""
+
+
+async def get_satoshigo_areas(
+    lon: int,
+    lat: int,
+    radius: int,
+) -> Optional[satoshigoAreas]:
+    rows = await db.fetchall(
+        """
+        SELECT *, 
+        ( ( ( Acos(Sin(( ? * Pi() / 180 )) * Sin(( 
+                  ` lat `* Pi() / 180 )) + 
+                    Cos 
+                      (( 
+                        ? * Pi() / 180 )) * Cos(( 
+                    ` lat `* Pi() / 180 )) * 
+                    Cos 
+                      (( 
+                        ( 
+                             ? - ` lng ` ) * Pi() / 180 ))) ) * 
+           180 / Pi 
+           () 
+         ) * 60 * 1.1515 * 1.609344 * 1000 ) AS METERS 
+        FROM   satoshigo_area 
+        WHERE  METERS <= ?
+        """,
+        (int(lat), int(lat), int(lon), radius),
+    )
+    return [satoshigoAreas._make(row) for row in rows]
+
+
+async def get_satoshigo_area(area_id: str) -> Optional[satoshigoAreas]:
+    row = await db.fetchone("SELECT * FROM satoshigo_area WHERE id = ?", (area_id,))
+    return satoshigoAreas._make(row)

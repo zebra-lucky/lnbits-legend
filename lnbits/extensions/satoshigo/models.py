@@ -23,10 +23,10 @@ class satoshigoFunding(NamedTuple):
     id: str
     satoshigo_id: str
     wallet: str
-    tplat: str
-    tplon: str
-    btlat: str
-    btlon: str
+    tplat: int
+    tplon: int
+    btlat: int
+    btlon: int
     amount: int
     payment_hash: str
     confirmed: bool
@@ -54,4 +54,16 @@ class satoshigoPlayers(NamedTuple):
 
     @classmethod
     def from_row(cls, row: Row) -> "satoshigoPlayers":
+        return cls(**dict(row))
+
+
+class satoshigoAreas(NamedTuple):
+    id: str
+    lng: int
+    lat: int
+    pot: int
+    time: int
+
+    @classmethod
+    def from_row(cls, row: Row) -> "satoshigoAreas":
         return cls(**dict(row))

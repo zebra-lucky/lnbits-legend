@@ -96,7 +96,7 @@ new Vue({
       LNbits.api
         .request(
           'GET',
-          '/satoshigo/api/v1/games?all_wallets',
+          '/satoshigo/api/v1/admin/games?all_wallets',
           this.g.user.wallets[0].inkey
         )
         .then(function (response) {
