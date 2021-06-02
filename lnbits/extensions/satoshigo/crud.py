@@ -264,12 +264,17 @@ async def cAreaMaker(someSats, tplng, tplat, btlng, btlat):
     if someSats >= 100000:
         pot = 500
     numPots = int(someSats / pot)
+    print(tplng)
+    print(btlng)
+    print(tplat)
+    print(btlat)
+
     lngs = random.sample(range(tplng, btlng), numPots)
     lats = random.sample(range(tplat, btlat), numPots)
     for lng in lngs:
         cAreas.append([lng, lats[lngs.index(lng)], pot])
         await create_area(lng, lats[lngs.index(lng)], pot)
-    print(cAreas)
+        print(cAreas)
     return cAreas
 
 

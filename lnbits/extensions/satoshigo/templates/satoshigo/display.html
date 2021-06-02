@@ -162,10 +162,10 @@ context %}{% block page %}
         var self = this
         self.payDialog.data.sats = parseInt(self.payDialog.data.sats)
         var data = self.payDialog.data
-        data.tplat = self.tplat
-        data.tplon = self.tplng
-        data.btlat = self.btlat
-        data.btlon = self.btlng
+        data.tplat = parseFloat(self.tplat)
+        data.tplon = parseFloat(self.tplng)
+        data.btlat = parseFloat(self.btlat)
+        data.btlon = parseFloat(self.btlng)
         data.game_id = self.game_id
         console.log(data.game_id)
         self.$q.notify({

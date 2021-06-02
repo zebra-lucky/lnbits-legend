@@ -126,10 +126,10 @@ async def api_game_delete(game_id):
 @api_validate_post_request(
     schema={
         "game_id": {"type": "string", "empty": False, "required": True},
-        "tplat": {"type": "integer", "empty": False, "required": True},
-        "tplon": {"type": "integer", "empty": False, "required": True},
-        "btlat": {"type": "integer", "empty": False, "required": True},
-        "btlon": {"type": "integer", "empty": False, "required": True},
+        "tplat": {"type": "float", "empty": False, "required": True},
+        "tplon": {"type": "float", "empty": False, "required": True},
+        "btlat": {"type": "float", "empty": False, "required": True},
+        "btlon": {"type": "float", "empty": False, "required": True},
         "sats": {"type": "integer", "empty": False, "required": True},
     }
 )
