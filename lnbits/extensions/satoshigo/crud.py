@@ -247,7 +247,12 @@ async def cAreaMaker(someSats, tplng, tplat, btlng, btlat):
     cAreas = []
     pot = 0
     numPots = 0
-    if 10 <= someSats <= 50:
+    lngs = []
+    lats = []
+    
+    if 10 <= someSats <= 20:
+        pot = 1
+    if 20 <= someSats <= 50:
         pot = 4
     if 50 <= someSats <= 100:
         pot = 10
@@ -264,65 +269,60 @@ async def cAreaMaker(someSats, tplng, tplat, btlng, btlat):
     if someSats >= 100000:
         pot = 500
     numPots = int(someSats / pot)
-    print(tplng)
-    print(btlng)
-    print(tplat)
-    print(btlat)
-
-    lngs = random.sample(range(tplng, btlng), numPots)
-    lats = random.sample(range(tplat, btlat), numPots)
+    for whats in range(numPots):
+        lngs.append(random.uniform(tplng, btlng))
+        lats.append(random.uniform(tplat, btlat))
     for lng in lngs:
-        cAreas.append([lng, lats[lngs.index(lng)], pot])
         await create_area(lng, lats[lngs.index(lng)], pot)
-        print(cAreas)
-    return cAreas
+    return ""
 
 
 async def create_area(
-    lng: int,
-    lat: int,
+    lng: float,
+    lat: float,
     pot: int,
 ):
     area_id = urlsafe_short_hash()
     await db.execute(
         """
-        INSERT INTO satoshigo_area (id, lng, lat, pot)
+        INSERT INTO satoshigo_areas (id, lng, lat, pot)
         VALUES (?, ?, ?, ?)
         """,
-        (area_id, int(lng), int(lat), int(pot)),
+        (area_id, lng, lat, int(pot)),
     )
     return ""
 
 
 async def get_satoshigo_areas(
-    lon: int,
-    lat: int,
+    lon: float,
+    lat: float,
     radius: int,
 ) -> Optional[satoshigoAreas]:
     rows = await db.fetchall(
         """
         SELECT *, 
         ( ( ( Acos(Sin(( ? * Pi() / 180 )) * Sin(( 
-                  ` lat `* Pi() / 180 )) + 
+                    lat * Pi() / 180 )) + 
                     Cos 
                       (( 
                         ? * Pi() / 180 )) * Cos(( 
-                    ` lat `* Pi() / 180 )) * 
+                    lat * Pi() / 180 )) * 
                     Cos 
                       (( 
                         ( 
-                             ? - ` lng ` ) * Pi() / 180 ))) ) * 
+                             ? - lng ) * Pi() / 180 ))) ) * 
            180 / Pi 
            () 
          ) * 60 * 1.1515 * 1.609344 * 1000 ) AS METERS 
-        FROM   satoshigo_area 
+        FROM   satoshigo_areas
         WHERE  METERS <= ?
+        LIMIT 100
         """,
-        (int(lat), int(lat), int(lon), radius),
+        (lat, lat, lon, radius),
     )
-    return [satoshigoAreas._make(row) for row in rows]
+    return [satoshigoAreas._make(row[:-1]) for row in rows]
 
 
 async def get_satoshigo_area(area_id: str) -> Optional[satoshigoAreas]:
-    row = await db.fetchone("SELECT * FROM satoshigo_area WHERE id = ?", (area_id,))
+    row = await db.fetchone("SELECT * FROM satoshigo_areas WHERE id = ?", (area_id,))
     return satoshigoAreas._make(row)

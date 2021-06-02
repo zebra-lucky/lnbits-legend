@@ -169,11 +169,13 @@ async def api_game_check_funding(satoshigo_id, payment_hash):
     if not game:
         return jsonify({"message": "Game does not exist."}), HTTPStatus.NOT_FOUND
     if check.paid:
-        funding = await update_satoshigo_funding(payment_hash, confirmed=True)
-        await cAreaMaker(
-            funding.amount, funding.tplon, funding.tplat, funding.btlon, funding.btlat
-        )
-        await update_satoshigo_game(game.id, amount=game.amount + funding.amount)
+        funding = await get_satoshigo_funding(payment_hash)
+        if funding.confirmed == False:
+            funding = await update_satoshigo_funding(payment_hash, confirmed=True)
+            await cAreaMaker(
+                funding.amount, funding.tplon, funding.tplat, funding.btlon, funding.btlat
+            )
+            await update_satoshigo_game(game.id, amount=game.amount + funding.amount)
         return jsonify({**check._asdict()}), HTTPStatus.OK
 
     return jsonify({**check._asdict()}), HTTPStatus.OK
@@ -191,13 +193,13 @@ async def api_game_funding(funding_id):
 @satoshigo_ext.route("/api/v1/find/areas", methods=["POST"])
 @api_validate_post_request(
     schema={
-        "lon": {"type": "integer", "empty": False, "required": True},
-        "lat": {"type": "integer", "empty": False, "required": True},
+        "lon": {"type": "float", "empty": False, "required": True},
+        "lat": {"type": "float", "empty": False, "required": True},
         "radius": {"type": "integer", "empty": False, "required": True},
     }
 )
 async def api_game_get_areas():
-    areas = await get_satoshigo_areas(g.data)
+    areas = await get_satoshigo_areas(**g.data)
 
     return jsonify([area._asdict() for area in areas]), HTTPStatus.OK
 
