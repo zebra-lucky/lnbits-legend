@@ -55,7 +55,7 @@ async def get_satoshigo_game(game_id: str) -> Optional[satoshigoGame]:
 
 async def get_satoshigo_games() -> List[satoshigoGame]:
 
-    rows = await db.fetchall("SELECT * FROM satoshigo_game", "")
+    rows = await db.fetchall("SELECT * FROM satoshigo_game",)
 
     return [satoshigoGame.from_row(row) for row in rows]
 

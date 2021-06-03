@@ -5,6 +5,7 @@ from lnbits.core.crud import get_user
 from lnbits.decorators import api_check_wallet_key, api_validate_post_request
 import random
 
+from .views import broadcast
 from . import satoshigo_ext
 from .crud import (
     create_satoshigo_game,
@@ -34,6 +35,7 @@ from ...core.services import create_invoice, check_invoice_status
 @api_check_wallet_key("invoice")
 async def api_admin_games():
     wallet_ids = [g.wallet.id]
+    
     if "all_wallets" in request.args:
         wallet_ids = (await get_user(g.wallet.user)).wallet_ids
 
@@ -47,6 +49,7 @@ async def api_admin_games():
 
 @satoshigo_ext.route("/api/v1/games", methods=["GET"])
 async def api_games():
+    await broadcast("cunt")
     return (
         jsonify([game._asdict() for game in await get_satoshigo_games()]),
         HTTPStatus.OK,
