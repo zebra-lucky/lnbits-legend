@@ -24,7 +24,7 @@ from .crud import (
     register_satoshigo_players,
     get_satoshigo_players_gameid,
     get_satoshigo_admin_games,
-    cAreaMaker,
+    create_area,
     get_satoshigo_areas,
     get_satoshigo_area,
 )
@@ -192,6 +192,40 @@ async def api_game_funding(funding_id):
 
 ###################################### cAREAS
 
+async def cAreaMaker(someSats, tplng, tplat, btlng, btlat):
+    cAreas = []
+    pot = 0
+    numPots = 0
+    lngs = []
+    lats = []
+    
+    if 10 <= someSats <= 20:
+        pot = 1
+    if 20 <= someSats <= 50:
+        pot = 4
+    if 50 <= someSats <= 100:
+        pot = 10
+    if 100 <= someSats <= 500:
+        pot = 20
+    if 500 <= someSats <= 1000:
+        pot = 30
+    if 1000 <= someSats <= 5000:
+        pot = 50
+    if 5000 <= someSats <= 10000:
+        pot = 100
+    if 10000 <= someSats <= 100000:
+        pot = 300
+    if someSats >= 100000:
+        pot = 500
+    numPots = int(someSats / pot)
+    for whats in range(numPots):
+        lngs.append(random.uniform(tplng, btlng))
+        lats.append(random.uniform(tplat, btlat))
+    for lng in lngs:
+        area = await create_area(lng, lats[lngs.index(lng)], pot)
+        await broadcast(area.id)
+
+    return ""
 
 @satoshigo_ext.route("/api/v1/find/areas", methods=["POST"])
 @api_validate_post_request(
@@ -211,6 +245,8 @@ async def api_game_get_areas():
 async def api_game_get_area(area_id):
     area = await get_satoshigo_area(area_id)
     return jsonify(area._asdict()), HTTPStatus.OK
+
+
 
 
 ###################################### PLAYER STUFF

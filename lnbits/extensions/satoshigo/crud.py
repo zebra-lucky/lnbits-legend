@@ -131,14 +131,14 @@ async def create_satoshigo_funding(
             False,
         ),
     )
-    funding = await get_satoshigo_funding(funding_id)
+    funding = await get_satoshigo_funding(payment_hash)
     assert funding, "Newly created funding couldn't be retrieved"
     return funding
 
 
-async def get_satoshigo_funding(funding_id: str) -> Optional[satoshigoFunding]:
+async def get_satoshigo_funding(payment_hash: str) -> Optional[satoshigoFunding]:
     row = await db.fetchone(
-        "SELECT * FROM satoshigo_funding WHERE id = ?", (funding_id,)
+        "SELECT * FROM satoshigo_funding WHERE payment_hash = ?", (payment_hash,)
     )
     return satoshigoFunding._make(row)
 
@@ -242,41 +242,6 @@ async def get_satoshigo_players_gameid(game_id: str) -> Optional[satoshigoPlayer
 
 #########cAREAS
 
-
-async def cAreaMaker(someSats, tplng, tplat, btlng, btlat):
-    cAreas = []
-    pot = 0
-    numPots = 0
-    lngs = []
-    lats = []
-    
-    if 10 <= someSats <= 20:
-        pot = 1
-    if 20 <= someSats <= 50:
-        pot = 4
-    if 50 <= someSats <= 100:
-        pot = 10
-    if 100 <= someSats <= 500:
-        pot = 20
-    if 500 <= someSats <= 1000:
-        pot = 30
-    if 1000 <= someSats <= 5000:
-        pot = 50
-    if 5000 <= someSats <= 10000:
-        pot = 100
-    if 10000 <= someSats <= 100000:
-        pot = 300
-    if someSats >= 100000:
-        pot = 500
-    numPots = int(someSats / pot)
-    for whats in range(numPots):
-        lngs.append(random.uniform(tplng, btlng))
-        lats.append(random.uniform(tplat, btlat))
-    for lng in lngs:
-        await create_area(lng, lats[lngs.index(lng)], pot)
-    return ""
-
-
 async def create_area(
     lng: float,
     lat: float,
@@ -290,7 +255,7 @@ async def create_area(
         """,
         (area_id, lng, lat, int(pot)),
     )
-    return ""
+    return await get_satoshigo_area(area_id)
 
 
 async def get_satoshigo_areas(
