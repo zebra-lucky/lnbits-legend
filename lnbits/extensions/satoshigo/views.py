@@ -1,4 +1,4 @@
-from quart import g, abort, render_template, websocket
+from quart import g, abort, render_template, websocket, jsonify
 from http import HTTPStatus
 import pyqrcode
 from io import BytesIO
@@ -16,6 +16,7 @@ import trio
 async def index():
     return await render_template("satoshigo/index.html", user=g.user)
 
+
 @satoshigo_ext.route("/test/")
 async def test():
     return await render_template("satoshigo/testleaflet.html")
@@ -23,9 +24,12 @@ async def test():
 
 @satoshigo_ext.route("/<game_id>")
 async def display(game_id):
-    game = await get_satoshigo_game(game_id) or abort(HTTPStatus.NOT_FOUND, "satoshigo game does not exist.")
-    return await render_template("satoshigo/display.html", gameAmount=game.amount, game_id=game_id)
-
+    game = await get_satoshigo_game(game_id) or abort(
+        HTTPStatus.NOT_FOUND, "satoshigo game does not exist."
+    )
+    return await render_template(
+        "satoshigo/display.html", gameAmount=game.amount, game_id=game_id
+    )
 
 
 ##################WEBSOCKET ROUTES########################
@@ -34,6 +38,7 @@ async def display(game_id):
 # lnurl endpoints can leave a message for the compose window
 
 connected_websockets = set()
+
 
 def collect_websocket(func):
     @wraps(func)
@@ -45,17 +50,19 @@ def collect_websocket(func):
             return await func(receive_channel, *args, **kwargs)
         finally:
             connected_websockets.remove(send_channel)
+
     return wrapper
 
 
-@satoshigo_ext.websocket('/ws')
+@satoshigo_ext.websocket("/ws")
 @collect_websocket
 async def wss(receive_channel):
     while True:
         data = await receive_channel.receive()
         await websocket.send(data)
 
+
 async def broadcast(message):
     print(connected_websockets)
     for queue in connected_websockets:
-        await queue.send(message)
+        await queue.send(f"{message}")

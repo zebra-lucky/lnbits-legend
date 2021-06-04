@@ -158,6 +158,13 @@
           type="text"
           label="game title *"
         ></q-input>
+        <q-input
+        filled
+        dense
+        v-model.trim="formDialog.data.description"
+        type="text"
+        label="game description *"
+      ></q-input>
         <div class="row q-mt-lg">
           <q-btn
             v-if="formDialog.data.id"

@@ -181,7 +181,7 @@ new Vue({
           'PUT',
           '/satoshigo/api/v1/games/' + data.id,
           wallet.adminkey,
-          _.pick(data, 'title', 'top_left', 'bottom_right')
+          _.pick(data, 'title', 'description', 'top_left', 'bottom_right')
         )
         .then(function (response) {
           self.satoshigogames = _.reject(self.satoshigogames, function (obj) {

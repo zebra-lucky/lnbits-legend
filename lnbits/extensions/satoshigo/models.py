@@ -4,21 +4,6 @@ from typing import NamedTuple
 import shortuuid  # type: ignore
 
 
-class satoshigoGame(NamedTuple):
-    id: str
-    wallet: str
-    wallet_key: str
-    title: str
-    coins: str
-    render_pin: int
-    amount: int
-    time: int
-
-    @classmethod
-    def from_row(cls, row: Row) -> "satoshigoGame":
-        return cls(**dict(row))
-
-
 class satoshigoFunding(NamedTuple):
     id: str
     satoshigo_id: str
@@ -32,25 +17,52 @@ class satoshigoFunding(NamedTuple):
     confirmed: bool
     time: int
 
+    @classmethod
+    def from_row(cls, row: Row) -> "satoshigoFunding":
+        return cls(**dict(row))
 
-class satoshigoPlayer(NamedTuple):
-    id: str
-    user_name: str
-    walletid: str
-    adminkey: str
-    inkey: str
-    time: int
+
+class satoshigoGamePlayer(NamedTuple):
+    hash: str
+    title: str
+    description: str
+    area: str
+    appearance: str
+    isDefault: int
+    flags: int
+    totalFunds: int
+    fundsCollected: int
 
     @classmethod
-    def from_row(cls, row: Row) -> "satoshigoPlayer":
+    def from_row(cls, row: Row) -> "satoshigoGame":
+        return cls(**dict(row))
+
+
+class satoshigoGame(NamedTuple):
+    hash: str
+    title: str
+    description: str
+    area: str
+    appearance: str
+    isDefault: int
+    flags: int
+    totalFunds: int
+    fundsCollected: int
+    wallet: str
+    wallet_key: str
+
+    @classmethod
+    def from_row(cls, row: Row) -> "satoshigoGame":
         return cls(**dict(row))
 
 
 class satoshigoPlayers(NamedTuple):
-    inkey: str
-    game_id: str
+    id: str
     user_name: str
-    time: int
+    adminkey: str
+    inkey: str
+    gameHash: str
+    enableHiScore: int
 
     @classmethod
     def from_row(cls, row: Row) -> "satoshigoPlayers":
@@ -58,12 +70,25 @@ class satoshigoPlayers(NamedTuple):
 
 
 class satoshigoAreas(NamedTuple):
-    id: str
-    lng: int
+    hash: str
+    lon: int
     lat: int
-    pot: int
-    time: int
+    radius: int
+    gameHash: str
+    time: str
 
     @classmethod
     def from_row(cls, row: Row) -> "satoshigoAreas":
+        return cls(**dict(row))
+
+
+class satoshigoItems(NamedTuple):
+    hash: str
+    type: str
+    areaHash: str
+    data: int
+    appearance: str
+
+    @classmethod
+    def from_row(cls, row: Row) -> "satoshigoItems":
         return cls(**dict(row))
