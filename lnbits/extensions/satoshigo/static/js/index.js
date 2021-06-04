@@ -21,7 +21,7 @@ var mapsatoshigogame = function (obj) {
   )
   obj.tleft = obj.top_left
   obj.bright = obj.bottom_right
-  obj.satoshigo_url = [locationPath, obj.id].join('')
+  obj.satoshigo_url = [locationPath, obj.hash].join('')
 
   return obj
 }
@@ -44,8 +44,9 @@ new Vue({
       satoshigoplayers: [],
       satoshigogamesTable: {
         columns: [
-          {name: 'id', align: 'left', label: 'ID', field: 'id'},
+          {name: 'hash', align: 'left', label: 'ID', field: 'hash'},
           {name: 'title', align: 'left', label: 'Title', field: 'title'},
+          {name: 'description', align: 'left', label: 'Title', field: 'description'},
           {name: 'amount', align: 'left', label: 'Amount', field: 'amount'}
         ],
         pagination: {
@@ -210,7 +211,8 @@ new Vue({
     },
     deletesatoshigogame: function (gameId) {
       var self = this
-      var game = _.findWhere(this.satoshigogames, {id: gameId})
+      var game = _.findWhere(this.satoshigogames, {hash: gameId})
+      console.log(_.findWhere(self.g.user.wallets, {id: game.wallet}))
 
       LNbits.utils
         .confirmDialog('Are you sure you want to delete this satoshigo game?')
@@ -225,7 +227,7 @@ new Vue({
               self.satoshigogames = _.reject(
                 self.satoshigogames,
                 function (obj) {
-                  return obj.id === gameId
+                  return obj.hash === gameId
                 }
               )
             })

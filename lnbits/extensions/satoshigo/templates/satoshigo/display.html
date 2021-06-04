@@ -27,7 +27,7 @@ context %}{% block page %}
               Bottom-right corner: {{ btlat }} , {{ btlng }} <br />
             </p>
               <div class="col-10"> <strong style="font-size: 30px"
-                >Amount: <b v-text="satsAmount"></b> sats</strong
+                >Amount: <b v-text="totalFunds"></b> sats</strong
               >
            
           </div>
@@ -116,7 +116,8 @@ context %}{% block page %}
     mixins: [windowMixin],
     data: function () {
       return {
-        satsAmount: parseInt('{{ gameAmount }}'),
+        totalFunds: parseInt('{{ totalFunds }}'),
+        fundsCollected: parseInt('{{ fundsCollected }}'),
         here: location.protocol + '//' + location.host,
         payDialog: {
           show: false,
@@ -197,8 +198,8 @@ context %}{% block page %}
                       message: `Funded, thanks!!!`
                     })
                     self.payDialog.show = false
-                    self.satsAmount =
-                      parseInt(self.satsAmount) +
+                    self.totalFunds =
+                      parseInt(self.totalFunds) +
                       parseInt(self.payDialog.data.sats)
                     clearInterval(interv)
                   }
@@ -381,6 +382,7 @@ context %}{% block page %}
     },
     created() {
       self = this
+      console.log(self.totalFunds)
       function getUrlVars() {
         var vars = {}
         var parts = window.location.href.replace(

@@ -23,14 +23,16 @@ async def m002_initial(db):
         """
         CREATE TABLE IF NOT EXISTS satoshigo_game (
             hash TEXT PRIMARY KEY,
-            title TEXT PRIMARY KEY,
-            description TEXT PRIMARY KEY,
-            area TEXT PRIMARY KEY,
-            appearance TEXT PRIMARY KEY,
-            isDefault INTEGER PRIMARY KEY,
-            flags INTEGER PRIMARY KEY,
-            totalFunds INTEGER PRIMARY KEY,
-            fundsCollected INTEGER PRIMARY KEY
+            title TEXT NOT NULL,
+            description TEXT NOT NULL,
+            area TEXT NOT NULL,
+            appearance TEXT NOT NULL,
+            isDefault INTEGER NOT NULL,
+            flags INTEGER NOT NULL,
+            totalFunds INTEGER NOT NULL,
+            fundsCollected INTEGER NOT NULL,
+            wallet TEXT NOT NULL,
+            wallet_key TEXT NOT NULL
         );
     """
     )
@@ -43,7 +45,7 @@ async def m003_initial(db):
             id TEXT PRIMARY KEY,
             user_name TEXT NOT NULL,
             adminkey TEXT NOT NULL,
-            inkey TEXT PRIMARY KEY,
+            inkey TEXT NOT NULL,
             gameHash TEXT NOT NULL,
             enableHiScore INTEGER NULL
         );

@@ -5,6 +5,7 @@ from lnbits.core.crud import get_user
 from lnbits.decorators import api_check_wallet_key, api_validate_post_request
 import random
 import math
+import json
 
 from .views import broadcast
 from . import satoshigo_ext
@@ -18,10 +19,9 @@ from .crud import (
     create_satoshigo_funding,
     get_satoshigo_funding,
     update_satoshigo_funding,
-    get_satoshigo_fundings,
+    get_satoshigo_player_gameid,
     create_satoshigo_player,
     get_satoshigo_player,
-    get_satoshigo_players,
     update_satoshigo_player,
     create_satoshigo_item,
     update_satoshigo_item,
@@ -30,6 +30,7 @@ from .crud import (
     create_area,
     get_satoshigo_areas,
     get_satoshigo_area,
+    get_satoshigo_items,
 )
 from ...core.services import create_invoice, check_invoice_status
 
@@ -61,7 +62,7 @@ async def api_games():
 
 @satoshigo_ext.route("/api/v1/games/<game_id>/admin", methods=["GET"])
 @api_check_wallet_key("invoice")
-async def api_game_retrieve(game_id):
+async def api_game_retrieve_admin(game_id):
     game = await get_satoshigo_game(game_id)
 
     if not game:
@@ -167,7 +168,7 @@ async def api_game_fund():
     )
 
     funding = await create_satoshigo_funding(
-        game_id=game.id,
+        game_id=game.hash,
         wallet=game.wallet,
         tplat=g.data["tplat"],
         tplon=g.data["tplon"],
@@ -198,7 +199,9 @@ async def api_game_check_funding(game_id, payment_hash):
                 funding.btlat,
                 game_id,
             )
-            await update_satoshigo_game(game_id, amount=game.amount + funding.amount)
+            await update_satoshigo_game(
+                game_id, totalFunds=game.totalFunds + funding.amount
+            )
         return jsonify({**check._asdict()}), HTTPStatus.OK
 
     return jsonify({**check._asdict()}), HTTPStatus.OK
@@ -233,7 +236,7 @@ async def api_game_item_post(item_id):
 
 
 @satoshigo_ext.route("/api/v1/items/<player_id>/collect", methods=["GET"])
-async def api_game_player_get(player_id):
+async def api_game_items_get(player_id):
     player = await get_satoshigo_player(player_id)
     return jsonify(player._asdict()), HTTPStatus.CREATED
 
@@ -288,15 +291,19 @@ async def cAreaMaker(someSats, tplng, tplat, btlng, btlat, gameHash):
         items = []
         lngs.append(random.uniform(tplng, btlng))
         lats.append(random.uniform(tplat, btlat))
+        print(lngs)
+        print(lats)
         area_id = await create_area(lngs[areaNo], lats[areaNo], 10, gameHash)
-        for item in areaNo:
+        for item in range(itemsPArea):
             items.append(
                 await create_satoshigo_item("simple", area_id, itemValue, "coin")
             )
         area = await get_satoshigo_area(area_id)
-        await broadcast(str(jsonify({{"area": area}, {"items": items}})))
+        areaDict = area._asdict()
+        areaDict["items"] = items
+        await broadcast(json.dumps(areaDict))
 
-    return ""
+    return jsonify(True), HTTPStatus.CREATED
 
 
 @satoshigo_ext.route("/api/v1/find/areas", methods=["POST"])
@@ -308,14 +315,26 @@ async def cAreaMaker(someSats, tplng, tplat, btlng, btlat, gameHash):
     }
 )
 async def api_game_get_areas():
+    areaDicts = []
     areas = await get_satoshigo_areas(**g.data)
-    return jsonify([area._asdict() for area in areas]), HTTPStatus.OK
+    for area in areas:
+        items = await get_satoshigo_items(area.hash)
+        areaDict = area._asdict()
+        areaDict["items"] = items
+        areaDicts.append(areaDict)
+    return jsonify([areaDict for areaDict in areaDicts]), HTTPStatus.OK
 
 
 @satoshigo_ext.route("/api/v1/find/areas/<area_id>", methods=["GET"])
 async def api_game_get_area(area_id):
     area = await get_satoshigo_area(area_id)
-    return jsonify(area._asdict()), HTTPStatus.OK
+
+    area = await get_satoshigo_area(area_id)
+    items = await get_satoshigo_items(area_id)
+    areaDict = area._asdict()
+    areaDict["items"] = items
+
+    return jsonify(areaDict), HTTPStatus.OK
 
 
 ###################################### PLAYERS
@@ -367,14 +386,14 @@ async def api_games_players():
     if "all_wallets" in request.args:
         wallet_ids = (await get_user(g.wallet.user)).wallet_ids
     for game in await get_satoshigo_admin_games(wallet_ids):
-        if not game.id:
+        if not game.hash:
             return jsonify(), HTTPStatus.OK
         else:
             return (
                 jsonify(
                     [
                         players._asdict()
-                        for players in await get_satoshigo_players_gameid(game.id)
+                        for players in await get_satoshigo_player_gameid(game.hash)
                     ]
                 ),
                 HTTPStatus.OK,

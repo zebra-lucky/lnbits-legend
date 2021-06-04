@@ -26,7 +26,7 @@
           dense
           flat
           :data="sortedsatoshigogames"
-          row-key="id"
+          row-key="hash"
           :columns="satoshigogamesTable.columns"
           :pagination.sync="satoshigogamesTable.pagination"
         >
@@ -64,7 +64,7 @@
                   flat
                   dense
                   size="xs"
-                  @click="openUpdateDialog(props.row.id)"
+                  @click="openUpdateDialog(props.row.hash)"
                   icon="edit"
                   color="light-blue"
                 ></q-btn>
@@ -72,7 +72,7 @@
                   flat
                   dense
                   size="xs"
-                  @click="deletesatoshigogame(props.row.id)"
+                  @click="deletesatoshigogame(props.row.hash)"
                   icon="cancel"
                   color="pink"
                 ></q-btn>
@@ -202,7 +202,7 @@
         {% raw %}
       </q-responsive>
       <p style="word-break: break-all">
-        <strong>ID:</strong> {{ qrCodeDialog.data.id }}<br />
+        <strong>ID:</strong> {{ qrCodeDialog.data.hash }}<br />
         <strong>Unique:</strong> {{ qrCodeDialog.data.is_unique }}<span
           v-if="qrCodeDialog.data.is_unique"
           class="text-deep-purple"

@@ -28,7 +28,10 @@ async def display(game_id):
         HTTPStatus.NOT_FOUND, "satoshigo game does not exist."
     )
     return await render_template(
-        "satoshigo/display.html", gameAmount=game.amount, game_id=game_id
+        "satoshigo/display.html",
+        totalFunds=game.totalFunds,
+        fundsCollected=game.fundsCollected,
+        game_id=game_id,
     )
 
 

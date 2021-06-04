@@ -2,6 +2,7 @@ import random
 from datetime import datetime
 from typing import List, Optional, Union
 from lnbits.helpers import urlsafe_short_hash
+import json
 
 from . import db
 from .models import (
@@ -33,7 +34,7 @@ async def create_satoshigo_game(
     await db.execute(
         """
         INSERT INTO satoshigo_game (
-            id,
+            hash,
             title,
             description,
             area,
@@ -43,9 +44,9 @@ async def create_satoshigo_game(
             totalFunds,
             fundsCollected,
             wallet,
-            wallet_key,
+            wallet_key
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (game_id, title, description, "", "", True, 0, 0, 0, wallet, wallet_key),
     )
@@ -55,12 +56,12 @@ async def create_satoshigo_game(
 
 
 async def get_satoshigo_game(game_id: str) -> Optional[satoshigoGame]:
-    row = await db.fetchone("SELECT * FROM satoshigo_game WHERE id = ?", (game_id,))
+    row = await db.fetchone("SELECT * FROM satoshigo_game WHERE hash = ?", (game_id,))
     return satoshigoGame._make(row)
 
 
 async def get_satoshigo_game_player(game_id: str) -> Optional[satoshigoGamePlayer]:
-    row = await db.fetchone("SELECT * FROM satoshigo_game WHERE id = ?", (game_id,))
+    row = await db.fetchone("SELECT * FROM satoshigo_game WHERE hash = ?", (game_id,))
     return satoshigoGamePlayer._make(row)
 
 
@@ -89,14 +90,14 @@ async def get_satoshigo_admin_games(
 async def update_satoshigo_game(game_id: str, **kwargs) -> Optional[satoshigoGame]:
     q = ", ".join([f"{field[0]} = ?" for field in kwargs.items()])
     await db.execute(
-        f"UPDATE satoshigo_game SET {q} WHERE id = ?", (*kwargs.values(), game_id)
+        f"UPDATE satoshigo_game SET {q} WHERE hash = ?", (*kwargs.values(), game_id)
     )
-    row = await db.fetchone("SELECT * FROM satoshigo_game WHERE id = ?", (game_id,))
+    row = await db.fetchone("SELECT * FROM satoshigo_game WHERE hash = ?", (game_id,))
     return satoshigoGame.from_row(row) if row else None
 
 
 async def delete_satoshigo_game(game_id: str) -> None:
-    await db.execute("DELETE FROM satoshigo_game WHERE id = ?", (game_id,))
+    await db.execute("DELETE FROM satoshigo_game WHERE hash = ?", (game_id,))
 
 
 ################################## FUNDING
@@ -104,7 +105,6 @@ async def delete_satoshigo_game(game_id: str) -> None:
 
 async def create_satoshigo_funding(
     *,
-    id: str,
     game_id: str,
     wallet: str,
     tplat: int,
@@ -189,7 +189,7 @@ async def create_satoshigo_player(user_name: str):
 
     await db.execute(
         """
-        INSERT INTO satoshigo_player (id, user_name, adminkey, inkey, gameHash, enableHiScore)
+        INSERT INTO satoshigo_players (id, user_name, adminkey, inkey, gameHash, enableHiScore)
         VALUES (?, ?, ?, ?, ?, ?)
         """,
         (user.id, user_name, wallet.adminkey, wallet.inkey, "", False),
@@ -203,24 +203,24 @@ async def update_satoshigo_player(user_id: str, **kwargs) -> Optional[satoshigoP
     await db.execute(
         f"UPDATE satoshigo_player SET {q} WHERE id = ?", (*kwargs.values(), user_id)
     )
-    row = await db.fetchone("SELECT * FROM satoshigo_player WHERE id = ?", (user_id,))
+    row = await db.fetchone("SELECT * FROM satoshigo_players WHERE id = ?", (user_id,))
     return satoshigoPlayers.from_row(row) if row else None
 
 
 async def get_satoshigo_player(user_id: str) -> Optional[satoshigoPlayers]:
-    row = await db.fetchone("SELECT * FROM satoshigo_player WHERE id = ?", (user_id,))
+    row = await db.fetchone("SELECT * FROM satoshigo_players WHERE id = ?", (user_id,))
     return satoshigoPlayers._make(row)
 
 
 async def get_satoshigo_player_gameid(game_id: str) -> Optional[satoshigoPlayers]:
     rows = await db.fetchall(
-        "SELECT * FROM satoshigo_player WHERE gameHash = ?", (game_id,)
+        "SELECT * FROM satoshigo_players WHERE gameHash = ?", (game_id,)
     )
     return [satoshigoPlayers._make(row) for row in rows]
 
 
 async def get_satoshigo_player_inkey(inkey: str) -> Optional[satoshigoPlayers]:
-    row = await db.fetchone("SELECT * FROM satoshigo_player WHERE inkey = ?", (inkey,))
+    row = await db.fetchone("SELECT * FROM satoshigo_players WHERE inkey = ?", (inkey,))
     return row
 
 
@@ -231,10 +231,10 @@ async def create_area(lon: float, lat: float, radius: int, gameHash: str):
     area_id = urlsafe_short_hash()
     await db.execute(
         """
-        INSERT INTO satoshigo_areas (id, lon, lat, radius, gameHash)
+        INSERT INTO satoshigo_areas (hash, lon, lat, radius, gameHash)
         VALUES (?, ?, ?, ?, ?)
         """,
-        (area_id, lon, lat, 10, gameHash),
+        (area_id, lon, lat, radius, gameHash),
     )
     return area_id
 
@@ -270,7 +270,8 @@ async def get_satoshigo_areas(
 
 
 async def get_satoshigo_area(area_id: str) -> Optional[satoshigoAreas]:
-    row = await db.fetchone("SELECT * FROM satoshigo_areas WHERE id = ?", (area_id,))
+    row = await db.fetchone("SELECT * FROM satoshigo_areas WHERE hash = ?", (area_id,))
+    print(row)
     return satoshigoAreas._make(row)
 
 
@@ -295,7 +296,7 @@ async def update_satoshigo_item(item_id: str, **kwargs) -> Optional[satoshigoIte
     await db.execute(
         f"UPDATE satoshigo_items SET {q} WHERE id = ?", (*kwargs.values(), item_id)
     )
-    row = await db.fetchone("SELECT * FROM satoshigo_items WHERE id = ?", (item_id,))
+    row = await db.fetchone("SELECT * FROM satoshigo_items WHERE hash = ?", (item_id,))
     return satoshigoItems.from_row(row) if row else None
 
 
