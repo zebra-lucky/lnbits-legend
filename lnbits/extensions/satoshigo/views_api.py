@@ -285,6 +285,9 @@ async def api_game_item_collect(item_id):
         payment_request=payment_request,
         extra={"tag": "satoshigo"},
     )
+    await update_satoshigo_game(
+        game.hash, fundsCollected=game.fundsCollected - item.data
+    )
 
     await broadcast(
         json.dumps(
@@ -296,6 +299,7 @@ async def api_game_item_collect(item_id):
         )
     )
     await delete_satoshigo_item(item_id)
+
     return (
         jsonify(
             {
