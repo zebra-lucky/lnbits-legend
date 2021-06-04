@@ -266,7 +266,6 @@ async def api_game_item_collect(item_id):
         return jsonify({"message": "Item does not exist"}), HTTPStatus.NOT_FOUND
     try:
         area = await get_satoshigo_area(item.areaHash)
-        print(area)
     except:
         return jsonify({"message": "Failed to locate area"}), HTTPStatus.NOT_FOUND
 
@@ -437,7 +436,7 @@ async def api_game_get_area(area_id):
 )
 async def api_game_player_post():
     try:
-        player = await get_satoshigo_player(g.data["user_name"])
+        player = await create_satoshigo_player(g.data["user_name"])
     except:
         return jsonify({"message": "Failed to get player"}), HTTPStatus.NOT_FOUND
 
