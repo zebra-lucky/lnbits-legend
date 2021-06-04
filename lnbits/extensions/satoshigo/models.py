@@ -22,22 +22,6 @@ class satoshigoFunding(NamedTuple):
         return cls(**dict(row))
 
 
-class satoshigoGamePlayer(NamedTuple):
-    hash: str
-    title: str
-    description: str
-    area: str
-    appearance: str
-    isDefault: int
-    flags: int
-    totalFunds: int
-    fundsCollected: int
-
-    @classmethod
-    def from_row(cls, row: Row) -> "satoshigoGame":
-        return cls(**dict(row))
-
-
 class satoshigoGame(NamedTuple):
     hash: str
     title: str

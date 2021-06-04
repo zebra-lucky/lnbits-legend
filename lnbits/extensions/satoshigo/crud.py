@@ -11,7 +11,6 @@ from .models import (
     satoshigoPlayers,
     satoshigoAreas,
     satoshigoItems,
-    satoshigoGamePlayer,
 )
 
 from lnbits.core.crud import (
@@ -60,17 +59,12 @@ async def get_satoshigo_game(game_id: str) -> Optional[satoshigoGame]:
     return satoshigoGame._make(row)
 
 
-async def get_satoshigo_game_player(game_id: str) -> Optional[satoshigoGamePlayer]:
-    row = await db.fetchone("SELECT * FROM satoshigo_game WHERE hash = ?", (game_id,))
-    return satoshigoGamePlayer._make(row)
-
-
-async def get_satoshigo_games() -> List[satoshigoGamePlayer]:
+async def get_satoshigo_games() -> List[satoshigoGame]:
 
     rows = await db.fetchall(
         "SELECT * FROM satoshigo_game",
     )
-    return [satoshigoGamePlayer.from_row(row) for row in rows]
+    return [satoshigoGame.from_row(row) for row in rows]
 
 
 async def get_satoshigo_admin_games(
@@ -83,7 +77,6 @@ async def get_satoshigo_admin_games(
     rows = await db.fetchall(
         f"SELECT * FROM satoshigo_game WHERE wallet IN ({q})", (*wallet_ids,)
     )
-
     return [satoshigoGame.from_row(row) for row in rows]
 
 
@@ -201,7 +194,7 @@ async def create_satoshigo_player(user_name: str):
 async def update_satoshigo_player(user_id: str, **kwargs) -> Optional[satoshigoPlayers]:
     q = ", ".join([f"{field[0]} = ?" for field in kwargs.items()])
     await db.execute(
-        f"UPDATE satoshigo_player SET {q} WHERE id = ?", (*kwargs.values(), user_id)
+        f"UPDATE satoshigo_players SET {q} WHERE id = ?", (*kwargs.values(), user_id)
     )
     row = await db.fetchone("SELECT * FROM satoshigo_players WHERE id = ?", (user_id,))
     return satoshigoPlayers.from_row(row) if row else None
@@ -244,6 +237,9 @@ async def get_satoshigo_areas(
     lat: float,
     radius: int,
 ) -> Optional[satoshigoAreas]:
+    print(lon)
+    print(lat)
+    print(radius)
     rows = await db.fetchall(
         """
         SELECT *, 
@@ -271,8 +267,11 @@ async def get_satoshigo_areas(
 
 async def get_satoshigo_area(area_id: str) -> Optional[satoshigoAreas]:
     row = await db.fetchone("SELECT * FROM satoshigo_areas WHERE hash = ?", (area_id,))
-    print(row)
     return satoshigoAreas._make(row)
+
+
+async def get_satoshigo_delete_area(area_id: str) -> None:
+    await db.execute("DELETE FROM satoshigo_areas WHERE hash = ?", (area_id,))
 
 
 ###########################ITEMS
