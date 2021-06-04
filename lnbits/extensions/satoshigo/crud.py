@@ -243,7 +243,7 @@ async def get_satoshigo_areas(
     con.enable_load_extension(True)
 
     con.execute(
-        "select load_extension('/home/ubuntu/projects/lnbits/lnbits/extensions/satoshigo/extension-functions')"
+        "select load_extension('/home/ubuntu/lnbits/lnbits/extensions/satoshigo/extension-functions')"
     )
     rows = await db.fetchall(
         """
