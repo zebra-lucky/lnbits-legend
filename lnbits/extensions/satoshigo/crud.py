@@ -238,13 +238,13 @@ async def get_satoshigo_areas(
     radius: int,
 ) -> Optional[satoshigoAreas]:
 
-    # db = sqlite3.connect(":memory:")
+    #  db = sqlite3.connect(":memory:")
 
-    # db.enable_load_extension(True)
+    #    db.enable_load_extension(True)
 
-    await db.execute(
-        "select load_extension('/home/ubuntu/lnbits/lnbits/extensions/satoshigo/extension-functions')"
-    )
+    #   await db.execute(
+    #      "select load_extension('/home/ubuntu/lnbits/lnbits/extensions/satoshigo/extension-functions')"
+    # )
     rows = await db.fetchall(
         """
         SELECT  *, 
