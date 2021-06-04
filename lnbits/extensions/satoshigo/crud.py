@@ -237,9 +237,6 @@ async def get_satoshigo_areas(
     lat: float,
     radius: int,
 ) -> Optional[satoshigoAreas]:
-    print(lon)
-    print(lat)
-    print(radius)
     rows = await db.fetchall(
         """
         SELECT *, 

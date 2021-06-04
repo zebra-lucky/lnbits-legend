@@ -89,7 +89,6 @@ new Vue({
   },
   methods: {
     test: function () {
-      console.log('poo')
     },
     getsatoshigogames: function () {
       var self = this
@@ -120,7 +119,6 @@ new Vue({
           this.g.user.wallets[0].inkey
         )
         .then(function (response) {
-          console.log(response.data)
           self.satoshigoplayers = response.data.map(function (obj) {
             return mapsatoshigoplayers(obj)
           })
@@ -139,7 +137,7 @@ new Vue({
       var game = _.findWhere(this.satoshigogames, {id: gameId})
 
       this.qrCodeDialog.data = _.clone(game)
-      console.log(this.qrCodeDialog.data)
+
       this.qrCodeDialog.data.url =
         window.location.protocol + '//' + window.location.host
       this.qrCodeDialog.show = true
@@ -212,7 +210,6 @@ new Vue({
     deletesatoshigogame: function (gameId) {
       var self = this
       var game = _.findWhere(this.satoshigogames, {hash: gameId})
-      console.log(_.findWhere(self.g.user.wallets, {id: game.wallet}))
 
       LNbits.utils
         .confirmDialog('Are you sure you want to delete this satoshigo game?')

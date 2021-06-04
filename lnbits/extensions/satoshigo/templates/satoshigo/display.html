@@ -168,7 +168,7 @@ context %}{% block page %}
         data.btlat = parseFloat(self.btlat)
         data.btlon = parseFloat(self.btlng)
         data.game_id = self.game_id
-        console.log(data.game_id)
+        
         self.$q.notify({
           spinner: true,
           message: 'Please wait...',
@@ -177,7 +177,7 @@ context %}{% block page %}
         LNbits.api
           .request('POST', '/satoshigo/api/v1/funding/', 'whatevs', data)
           .then(function (response) {
-            console.log(response.data)
+            
             self.payDialog.data.req = response.data[1]
             self.payDialog.show = true
             var interv = setInterval(function () {
@@ -191,7 +191,7 @@ context %}{% block page %}
                   'whatevs'
                 )
                 .then(function (response) {
-                  console.log(response.data.paid)
+                  
                   if (response.data.paid == true) {
                     self.$q.notify({
                       type: 'positive',
@@ -321,9 +321,7 @@ context %}{% block page %}
       startMap: function () {
         self = this
         if ((self.tplat, self.tplng, self.btlat, self.btlng)) {
-          //    console.log(self.btlat)
-          console.log((parseFloat(self.tplat) + parseFloat(self.btlat)) / 2)
-          console.log((parseFloat(self.tplng) + parseFloat(self.btlng)) / 2)
+         
           self.mapDiv = L.map('mapContainer').setView(
             [
               (parseFloat(self.tplat) + parseFloat(self.btlat)) / 2,
@@ -347,7 +345,6 @@ context %}{% block page %}
 
         var popup = L.popup()
         function tester() {
-          console.log('pooop')
         }
 
         function onMapClick(e) {
@@ -382,7 +379,6 @@ context %}{% block page %}
     },
     created() {
       self = this
-      console.log(self.totalFunds)
       function getUrlVars() {
         var vars = {}
         var parts = window.location.href.replace(
