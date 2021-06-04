@@ -304,6 +304,10 @@ async def get_satoshigo_item(item_id: str) -> Optional[satoshigoItems]:
     return satoshigoItems._make(row)
 
 
+async def delete_satoshigo_item(item_id: str) -> None:
+    await db.execute("DELETE FROM satoshigo_game WHERE hash = ?", (item_id,))
+
+
 async def get_satoshigo_items(area_id: str) -> Optional[satoshigoItems]:
     rows = await db.fetchall(
         "SELECT * FROM satoshigo_items WHERE areaHash = ?", (area_id,)

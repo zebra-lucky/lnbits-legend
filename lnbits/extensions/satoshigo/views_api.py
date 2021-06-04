@@ -20,6 +20,7 @@ from .crud import (
     update_satoshigo_funding,
     get_satoshigo_player_gameid,
     create_satoshigo_player,
+    delete_satoshigo_item,
     get_satoshigo_player,
     update_satoshigo_player,
     create_satoshigo_item,
@@ -33,7 +34,7 @@ from .crud import (
     get_satoshigo_items,
     get_satoshigo_delete_area,
 )
-from ...core.services import create_invoice, check_invoice_status
+from ...core.services import create_invoice, check_invoice_status, pay_invoice
 
 
 @satoshigo_ext.route("/api/v1/admin/games", methods=["GET"])
@@ -64,9 +65,9 @@ async def api_games():
 @satoshigo_ext.route("/api/v1/games/<game_id>/admin", methods=["GET"])
 @api_check_wallet_key("invoice")
 async def api_game_retrieve_admin(game_id):
-    game = await get_satoshigo_game(game_id)
-
-    if not game:
+    try:
+        game = await get_satoshigo_game(game_id)
+    except:
         return (
             jsonify({"message": "satoshigo game does not exist."}),
             HTTPStatus.NOT_FOUND,
@@ -80,16 +81,16 @@ async def api_game_retrieve_admin(game_id):
 
 @satoshigo_ext.route("/api/v1/games/<game_id>", methods=["GET"])
 async def api_game_retrieve(game_id):
-    game = await get_satoshigo_game(game_id)
-    gameDict = game._asdict()
-    gameDict.pop("wallet")
-    gameDict.pop("wallet_key")
-    if not game:
+    try:
+        game = await get_satoshigo_game(game_id)
+    except:
         return (
             jsonify({"message": "Game does not exist."}),
             HTTPStatus.NOT_FOUND,
         )
-
+    gameDict = game._asdict()
+    gameDict.pop("wallet")
+    gameDict.pop("wallet_key")
     return jsonify(gameDict), HTTPStatus.OK
 
 
@@ -104,8 +105,9 @@ async def api_game_retrieve(game_id):
 )
 async def api_game_create_or_update(game_id=None):
     if game_id:
-        game = await get_satoshigo_game(game_id)
-        if not game:
+        try:
+            game = await get_satoshigo_game(game_id)
+        except:
             return (
                 jsonify({"message": "satoshigo game does not exist."}),
                 HTTPStatus.NOT_FOUND,
@@ -126,9 +128,9 @@ async def api_game_create_or_update(game_id=None):
 @satoshigo_ext.route("/api/v1/games/<game_id>", methods=["DELETE"])
 @api_check_wallet_key("admin")
 async def api_game_delete(game_id):
-    game = await get_satoshigo_game(game_id)
-
-    if not game:
+    try:
+        game = await get_satoshigo_game(game_id)
+    except:
         return (
             jsonify({"message": "satoshigo game does not exist."}),
             HTTPStatus.NOT_FOUND,
@@ -157,9 +159,9 @@ async def api_game_delete(game_id):
     }
 )
 async def api_game_fund():
-    game = await get_satoshigo_game(g.data["game_id"])
-
-    if not game:
+    try:
+        game = await get_satoshigo_game(g.data["game_id"])
+    except:
         return (
             jsonify({"message": "satoshigo game does not exist."}),
             HTTPStatus.NOT_FOUND,
@@ -172,18 +174,18 @@ async def api_game_fund():
     )
     if not payment_hash:
         return jsonify({"message": "Failed to create invoice"}), HTTPStatus.FORBIDDEN
-
-    funding = await create_satoshigo_funding(
-        game_id=game.hash,
-        wallet=game.wallet,
-        tplat=g.data["tplat"],
-        tplon=g.data["tplon"],
-        btlat=g.data["btlat"],
-        btlon=g.data["btlon"],
-        amount=g.data["sats"],
-        payment_hash=payment_hash,
-    )
-    if not funding:
+    try:
+        funding = await create_satoshigo_funding(
+            game_id=game.hash,
+            wallet=game.wallet,
+            tplat=g.data["tplat"],
+            tplon=g.data["tplon"],
+            btlat=g.data["btlat"],
+            btlon=g.data["btlon"],
+            amount=g.data["sats"],
+            payment_hash=payment_hash,
+        )
+    except:
         return jsonify({"message": "Something went wrong"}), HTTPStatus.FORBIDDEN
 
     return jsonify({**funding._asdict()}, payment_request), HTTPStatus.OK
@@ -191,10 +193,11 @@ async def api_game_fund():
 
 @satoshigo_ext.route("/api/v1/funding/<game_id>/<payment_hash>", methods=["GET"])
 async def api_game_check_funding(game_id, payment_hash):
-    game = await get_satoshigo_game(game_id)
-    check = await check_invoice_status(game.wallet, payment_hash)
-    if not game:
+    try:
+        game = await get_satoshigo_game(game_id)
+    except:
         return jsonify({"message": "Game does not exist."}), HTTPStatus.NOT_FOUND
+    check = await check_invoice_status(game.wallet, payment_hash)
     if check.paid:
         funding = await get_satoshigo_funding(payment_hash)
         if funding.confirmed == False:
@@ -218,8 +221,9 @@ async def api_game_check_funding(game_id, payment_hash):
 
 @satoshigo_ext.route("/api/v1/funding/<funding_id>", methods=["GET"])
 async def api_game_funding(funding_id):
-    funding = await get_satoshigo_funding(funding_id)
-    if not funding:
+    try:
+        funding = await get_satoshigo_funding(funding_id)
+    except:
         return jsonify({"message": "Funding not found"}), HTTPStatus.NOT_FOUND
     return jsonify(funding._asdict()), HTTPStatus.OK
 
@@ -240,18 +244,74 @@ async def api_game_funding(funding_id):
 )
 async def api_game_item_post(item_id):
     if item_id:
-        item = await update_satoshigo_item(item_id, **g.data)
+        try:
+            item = await update_satoshigo_item(item_id, **g.data)
+        except:
+            return jsonify({"message": "failed to update item"}), HTTPStatus.FORBIDDEN
     else:
-        item = await create_satoshigo_item(**g.data)
-    if not item:
-        return jsonify({"message": "Failed to create item"}), HTTPStatus.OK
+        try:
+            item = await create_satoshigo_item(**g.data)
+        except:
+            return jsonify({"message": "Failed to create item"}), HTTPStatus.OK
+
     return jsonify(item), HTTPStatus.CREATED
 
 
-@satoshigo_ext.route("/api/v1/items/<item_id>/collect", methods=["GET"])
+@satoshigo_ext.route("/api/v1/items/<item_id>/collect", methods=["POST"])
+@api_check_wallet_key("admin")
+async def api_game_item_collect(item_id):
+    try:
+        item = await get_satoshigo_item(item_id)
+    except:
+        return jsonify({"message": "Item does not exist"}), HTTPStatus.NOT_FOUND
+    try:
+        area = await get_satoshigo_area(item.areaHash)
+        print(area)
+    except:
+        return jsonify({"message": "Failed to locate area"}), HTTPStatus.NOT_FOUND
+
+    try:
+        game = await get_satoshigo_game(area.gameHash)
+    except:
+        return jsonify({"message": "Failed to locate game"}), HTTPStatus.NOT_FOUND
+
+    payment_hash, payment_request = await create_invoice(
+        wallet_id=g.wallet.id,
+        amount=item.data,
+        memo=area.gameHash,
+    )
+    await pay_invoice(
+        wallet_id=game.wallet,
+        payment_request=payment_request,
+        extra={"tag": "satoshigo"},
+    )
+
+    await broadcast(
+        json.dumps(
+            {
+                "type": "itemChanged",
+                "actor": "playerHash",
+                "body": {"action": "collected", "itemHash": item_id},
+            }
+        )
+    )
+    await delete_satoshigo_item(item_id)
+    return (
+        jsonify(
+            {
+                "itemHash": item_id,
+                "payHash": payment_hash,
+            }
+        ),
+        HTTPStatus.CREATED,
+    )
+
+
+@satoshigo_ext.route("/api/v1/items/<item_id>", methods=["GET"])
 async def api_game_item_get(item_id):
-    item = await get_satoshigo_item(item_id)
-    if not item:
+    try:
+        item = await get_satoshigo_item(item_id)
+    except:
         return jsonify({"message": "Item does not exist"}), HTTPStatus.NOT_FOUND
     return jsonify(item._asdict()), HTTPStatus.CREATED
 
@@ -304,8 +364,6 @@ async def cAreaMaker(someSats, tplng, tplat, btlng, btlat, gameHash):
         items = []
         lngs.append(random.uniform(tplng, btlng))
         lats.append(random.uniform(tplat, btlat))
-        print(lngs)
-        print(lats)
         area_id = await create_area(lngs[areaNo], lats[areaNo], 10, gameHash)
         for item in range(itemsPArea):
             items.append(
@@ -313,7 +371,7 @@ async def cAreaMaker(someSats, tplng, tplat, btlng, btlat, gameHash):
             )
         area = await get_satoshigo_area(area_id)
         areaDict = area._asdict()
-        areaDict["items"] = items
+        areaDict["items"] = [item._asdict() for item in items]
         await broadcast(json.dumps(areaDict))
         areaDicts.append(areaDict)
 
@@ -330,28 +388,38 @@ async def cAreaMaker(someSats, tplng, tplat, btlng, btlat, gameHash):
 )
 async def api_game_get_areas():
     areaDicts = []
-    areas = await get_satoshigo_areas(**g.data)
-    if not areas:
-        return jsonify({"message": "Internal server error"}), HTTPStatus.NOT_FOUND
+
+    try:
+        areas = await get_satoshigo_areas(**g.data)
+    except:
+        return jsonify({"message": "Failed to get areas"}), HTTPStatus.NOT_FOUND
+
     for area in areas:
         items = await get_satoshigo_items(area.hash)
         if not items:
             await get_satoshigo_delete_area(area.hash)
         else:
             areaDict = area._asdict()
-            areaDict["items"] = items
+            areaDict["items"] = [item._asdict() for item in items]
             areaDicts.append(areaDict)
     return jsonify([areaDict for areaDict in areaDicts]), HTTPStatus.OK
 
 
 @satoshigo_ext.route("/api/v1/find/areas/<area_id>", methods=["GET"])
 async def api_game_get_area(area_id):
-    area = await get_satoshigo_area(area_id)
 
-    area = await get_satoshigo_area(area_id)
-    items = await get_satoshigo_items(area_id)
+    try:
+        area = await get_satoshigo_area(area_id)
+    except:
+        return jsonify({"message": "Failed to get area"}), HTTPStatus.NOT_FOUND
+
+    try:
+        items = await get_satoshigo_items(area_id)
+    except:
+        return jsonify({"message": "Failed to get items"}), HTTPStatus.NOT_FOUND
+
     areaDict = area._asdict()
-    areaDict["items"] = items
+    areaDict["items"] = [item._asdict() for item in items]
 
     return jsonify(areaDict), HTTPStatus.OK
 
@@ -364,9 +432,11 @@ async def api_game_get_area(area_id):
     schema={"user_name": {"type": "string", "empty": False, "required": True}}
 )
 async def api_game_player_post():
-    player = await create_satoshigo_player(g.data["user_name"])
-    if not player:
-        return jsonify({"message": "Failed to create player"}), HTTPStatus.FORBIDDEN
+    try:
+        player = await get_satoshigo_player(g.data["user_name"])
+    except:
+        return jsonify({"message": "Failed to get player"}), HTTPStatus.NOT_FOUND
+
     return jsonify(player._asdict()), HTTPStatus.CREATED
 
 
@@ -376,16 +446,23 @@ async def api_game_player_post():
     schema={"user_name": {"type": "string", "empty": False, "required": True}}
 )
 async def api_game_player_update(player_id):
-    player = await update_satoshigo_player(g.data["user_name"], player_id)
-    if not player:
+    try:
+        player = await update_satoshigo_player(g.data["user_name"], player_id)
+    except:
         return jsonify({"message": "Failed to update player"}), HTTPStatus.FORBIDDEN
+
     return jsonify(player._asdict()), HTTPStatus.CREATED
 
 
 @satoshigo_ext.route("/api/v1/players/<player_id>", methods=["GET"])
+@api_check_wallet_key("admin")
 async def api_game_player_get(player_id):
-    player = await get_satoshigo_player(player_id)
-    if not player:
+    try:
+        player = await get_satoshigo_player(player_id)
+    except:
+        return jsonify({"message": "Failed to get player"}), HTTPStatus.NOT_FOUND
+    if player.adminkey != g.wallet.adminkey:
+
         return jsonify({"message": "Failed to get player"}), HTTPStatus.FORBIDDEN
     return jsonify(player._asdict()), HTTPStatus.CREATED
 
@@ -422,13 +499,14 @@ async def api_games_players():
         if not game.hash:
             return jsonify(), HTTPStatus.OK
         else:
+            playersDictList = []
+            for players in await get_satoshigo_player_gameid(game.hash):
+                playersDict = players._asdict()
+                playersDict.pop("adminkey")
+                playersDictList.append(playersDict)
+
             return (
-                jsonify(
-                    [
-                        players._asdict()
-                        for players in await get_satoshigo_player_gameid(game.hash)
-                    ]
-                ),
+                jsonify(playersDictList),
                 HTTPStatus.OK,
             )
     return jsonify(), HTTPStatus.OK
