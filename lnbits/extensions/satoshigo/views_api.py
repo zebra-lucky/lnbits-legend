@@ -391,7 +391,6 @@ async def cAreaMaker(someSats, tplng, tplat, btlng, btlat, gameHash):
 )
 async def api_game_get_areas():
     areaDicts = []
-
     try:
         areas = await get_satoshigo_areas(**g.data)
     except:
