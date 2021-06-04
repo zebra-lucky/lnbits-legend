@@ -240,17 +240,17 @@ async def get_satoshigo_areas(
     rows = await db.fetchall(
         """
         SELECT *, 
-        ( ( ( Acos(Sin(( ? * Pi() / 180 )) * Sin(( 
-                    lat * Pi() / 180 )) + 
+        ( ( ( acos(sin(( ? * pi() / 180 )) * sin(( 
+                    lat * pi() / 180 )) + 
                     Cos 
                       (( 
-                        ? * Pi() / 180 )) * Cos(( 
-                    lat * Pi() / 180 )) * 
-                    Cos 
+                        ? * pi() / 180 )) * cos(( 
+                    lat * pi() / 180 )) * 
+                    cos 
                       (( 
                         ( 
-                             ? - lon ) * Pi() / 180 ))) ) * 
-           180 / Pi 
+                             ? - lon ) * pi() / 180 ))) ) * 
+           180 / pi 
            () 
          ) * 60 * 1.1515 * 1.609344 * 1000 ) AS METERS 
         FROM   satoshigo_areas
