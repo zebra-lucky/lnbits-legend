@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import List, Optional, Union
 from lnbits.helpers import urlsafe_short_hash
 import json
-
+import sqlite3
 from . import db
 from .models import (
     satoshigoGame,
