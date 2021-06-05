@@ -247,10 +247,7 @@ async def get_satoshigo_areas(
     lonO = lon + dLon * 180 / math.pi
     lat1 = lat - dLat * 180 / math.pi
     lon1 = lon - dLon * 180 / math.pi
-    print(latO)
-    print(lonO)
-    print(lat1)
-    print(lon1)
+
     rows = await db.fetchall(
         """
         SELECT * FROM satoshigo_areas WHERE 
