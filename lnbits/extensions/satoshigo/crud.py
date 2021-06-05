@@ -297,7 +297,7 @@ async def get_satoshigo_item(item_id: str) -> Optional[satoshigoItems]:
 
 
 async def delete_satoshigo_item(item_id: str) -> None:
-    await db.execute("DELETE FROM satoshigo_game WHERE hash = ?", (item_id,))
+    await db.execute("DELETE FROM satoshigo_items WHERE hash = ?", (item_id,))
 
 
 async def get_satoshigo_items(area_id: str) -> Optional[satoshigoItems]:

@@ -298,7 +298,6 @@ async def api_game_item_collect(item_id):
         )
     )
     await delete_satoshigo_item(item_id)
-
     return (
         jsonify(
             {
