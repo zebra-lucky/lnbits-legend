@@ -4,6 +4,7 @@ from typing import List, Optional, Union
 from lnbits.helpers import urlsafe_short_hash
 import json
 import sqlite3
+import math
 from . import db
 from .models import (
     satoshigoGame,
@@ -238,36 +239,27 @@ async def get_satoshigo_areas(
     radius: int,
 ) -> Optional[satoshigoAreas]:
 
-    #  db = sqlite3.connect(":memory:")
+    R = 6378137
+    dLat = (radius / 2) / R
+    dLon = (radius / 2) / (R * math.cos(math.pi * lat / 180))
 
-    #    db.enable_load_extension(True)
-
-    #   await db.execute(
-    #      "select load_extension('/home/ubuntu/lnbits/lnbits/extensions/satoshigo/extension-functions')"
-    # )
+    latO = lat + dLat * 180 / math.pi
+    lonO = lon + dLon * 180 / math.pi
+    lat1 = lat - dLat * 180 / math.pi
+    lon1 = lon - dLon * 180 / math.pi
+    print(latO)
+    print(lonO)
+    print(lat1)
+    print(lon1)
     rows = await db.fetchall(
         """
-        SELECT  *, 
-        ( ( ( ACOS(SIN(( ? * PI() / 180 )) * SIN(( 
-                    lat * PI() / 180 )) + 
-                    COS 
-                      (( 
-                        ? * PI() / 180 )) * COS(( 
-                    lat * PI() / 180 )) * 
-                    COS 
-                      (( 
-                        ( 
-                             ? - lon ) * PI() / 180 ))) ) * 
-           180 / PI 
-           () 
-         ) * 60 * 1.1515 * 1.609344 * 1000 ) AS METERS 
-        FROM   satoshigo_areas
-        WHERE  METERS <= ?
-        LIMIT 100
+        SELECT * FROM satoshigo_areas WHERE 
+        lat >= ? AND lat <= ? AND lon >= ? AND lon <= ?
+        
         """,
-        (lat, lat, lon, radius),
+        (lat1, latO, lon1, lonO),
     )
-    return [satoshigoAreas._make(row[:-1]) for row in rows]
+    return [satoshigoAreas._make(row) for row in rows]
 
 
 async def get_satoshigo_area(area_id: str) -> Optional[satoshigoAreas]:
