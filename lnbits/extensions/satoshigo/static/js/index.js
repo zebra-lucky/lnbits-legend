@@ -47,7 +47,8 @@ new Vue({
           {name: 'hash', align: 'left', label: 'ID', field: 'hash'},
           {name: 'title', align: 'left', label: 'Title', field: 'title'},
           {name: 'description', align: 'left', label: 'Title', field: 'description'},
-          {name: 'amount', align: 'left', label: 'Amount', field: 'amount'}
+          {name: 'totalFunds', align: 'left', label: 'totalFunds', field: 'totalFunds'},
+          {name: 'fundsCollected', align: 'left', label: 'fundsCollected', field: 'fundsCollected'}
         ],
         pagination: {
           rowsPerPage: 10
