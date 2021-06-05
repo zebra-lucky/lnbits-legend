@@ -234,9 +234,7 @@ async def create_area(lon: float, lat: float, radius: int, gameHash: str):
 
 
 async def get_satoshigo_areas(
-    lon: float,
-    lat: float,
-    radius: int,
+    lon: float, lat: float, radius: int, exclude: str
 ) -> Optional[satoshigoAreas]:
 
     R = 6378137

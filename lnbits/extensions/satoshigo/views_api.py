@@ -387,6 +387,7 @@ async def cAreaMaker(someSats, tplng, tplat, btlng, btlat, gameHash):
         "lon": {"type": "float", "empty": False, "required": True},
         "lat": {"type": "float", "empty": False, "required": True},
         "radius": {"type": "integer", "empty": False, "required": True},
+        "exclude": {"type": "list", "required": False},
     }
 )
 async def api_game_get_areas():
@@ -402,9 +403,13 @@ async def api_game_get_areas():
         if not items:
             await get_satoshigo_delete_area(area.hash)
         else:
-            areaDict = area._asdict()
-            areaDict["items"] = [item._asdict() for item in items]
-            areaDicts.append(areaDict)
+            try:
+                areaDict = area._asdict()
+                if area.hash not in g.data["exclude"]:
+                    areaDict["items"] = [item._asdict() for item in items]
+                    areaDicts.append(areaDict)
+            except:
+                print(False)
     return jsonify([areaDict for areaDict in areaDicts]), HTTPStatus.OK
 
 
