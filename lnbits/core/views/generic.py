@@ -9,16 +9,18 @@ from quart import (
     redirect,
     render_template,
     send_from_directory,
-    url_for,
+    url_for, jsonify
 )
 
 from lnbits.core import core_app, db
 from lnbits.decorators import check_user_exists, validate_uuids
-from lnbits.settings import LNBITS_ALLOWED_USERS, SERVICE_FEE, LNBITS_SITE_TITLE
+from lnbits.settings import LNBITS_ALLOWED_USERS, SERVICE_FEE, LNBITS_SITE_TITLE, LNBITS_ADMIN_USERS
 
 from ..crud import (
     create_account,
-    get_user,
+    get_user, 
+    get_admin, 
+    get_funding,
     update_user_extension,
     create_wallet,
     delete_wallet,
@@ -62,9 +64,11 @@ async def extensions():
         await update_user_extension(
             user_id=g.user.id, extension=extension_to_disable, active=0
         )
-
-    return await render_template("core/extensions.html", user=await get_user(g.user.id))
-
+    admin = get_admin()
+    is_admin = None
+    if g.user.id == admin[0]:
+        is_admin = admin[0]
+    return await render_template("core/extensions.html", user=await get_user(g.user.id), admin=is_admin)
 
 @core_app.route("/wallet")
 @validate_uuids(["usr", "wal"])
@@ -73,6 +77,7 @@ async def wallet():
     wallet_id = request.args.get("wal", type=str)
     wallet_name = request.args.get("nme", type=str)
     service_fee = int(SERVICE_FEE) if int(SERVICE_FEE) == SERVICE_FEE else SERVICE_FEE
+    admin = False
 
     # just wallet_name: create a new user, then create a new wallet for user with wallet_name
     # just user_id: return the first user wallet or create one if none found (with default wallet_name)
@@ -91,6 +96,9 @@ async def wallet():
         if LNBITS_ALLOWED_USERS and user_id not in LNBITS_ALLOWED_USERS:
             abort(HTTPStatus.UNAUTHORIZED, "User not authorized.")
 
+        if LNBITS_ADMIN_USERS and user_id in LNBITS_ADMIN_USERS:
+            admin = True
+
     if not wallet_id:
         if user.wallets and not wallet_name:
             wallet = user.wallets[0]
@@ -104,7 +112,7 @@ async def wallet():
         abort(HTTPStatus.FORBIDDEN, "Not your wallet.")
 
     return await render_template(
-        "core/wallet.html", user=user, wallet=wallet, service_fee=service_fee
+        "core/wallet.html", user=user, wallet=wallet, service_fee=service_fee, admin=admin
     )
 
 
@@ -247,3 +255,23 @@ async def manifest(usr: str):
             ],
         }
     )
+
+
+@core_app.route("/admin")
+def admin_setup():
+    user_id = request.args.get("usr", type=str)
+    admin = get_admin()
+    if admin != None:
+        if admin[0] == None:
+            admin_user = get_user(create_account().id).id
+        if admin.user != user_id:
+            abort(HTTPStatus.FORBIDDEN, "Admin only")
+        if not user_id:
+            admin_user = get_user(create_account().id).id
+            print(admin_user)
+            admin = get_admin()
+        else:
+            admin_user = user_id
+
+    funding = get_funding()
+    return render_template("core/admin.html", admin=admin, funding=funding, admin_user=admin_user)

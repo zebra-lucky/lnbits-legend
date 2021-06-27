@@ -9,7 +9,7 @@ from lnbits.db import Connection
 from lnbits.settings import DEFAULT_WALLET_NAME
 
 from . import db
-from .models import User, Wallet, Payment, BalanceCheck
+from .models import User, Wallet, Payment, BalanceCheck, Admin, Funding
 
 
 # accounts
@@ -465,3 +465,100 @@ async def get_balance_notify(
         (wallet_id,),
     )
     return row[0] if row else None
+
+
+
+# admin
+# --------
+
+def get_admin(
+    user: Optional[str] = None, 
+    site_title: Optional[str] = None,
+    tagline: Optional[str] = None,
+    primary_color: Optional[str] = None, 
+    secondary_color: Optional[str] = None,
+    allowed_users: Optional[str] = None, 
+    default_wallet_name: Optional[str] = None,
+    data_folder: Optional[str] = None, 
+    disabled_ext: Optional[str] = "amilk",
+    force_https: Optional[bool] = True,     
+    service_fee: Optional[int] = 0,
+    funding_source_primary: Optional[str] = "",
+    edited: Optional[str] = "",
+    CLightningWallet: Optional[str] =  '',
+    LndRestWallet: Optional[str] =  '',
+    LndWallet: Optional[str] =  '',
+    LntxbotWallet: Optional[str] =  '',
+    LNPayWallet: Optional[str] =  '',
+    LnbitsWallet: Optional[str] =  '',
+    OpenNodeWallet: Optional[str] =  '',
+
+    ) -> Optional[Admin]:
+    row = g.db.fetchone("SELECT * FROM admin WHERE 1")
+    if not user:
+        return Admin(**row) if row else None
+    if not row[0] or user != None:
+        g.db.execute(
+            """
+            UPDATE admin
+            SET user = ?, site_title = ?, tagline = ?, primary_color = ?, secondary_color = ?, allowed_users = ?, default_wallet_name = ?, data_folder = ?, disabled_ext = ?, force_https = ?, service_fee = ?, funding_source = ?
+            WHERE 1
+            """,
+            (
+                user,
+                site_title,
+                tagline,
+                primary_color,
+                secondary_color,
+                allowed_users,
+                default_wallet_name,
+                data_folder,
+                disabled_ext,
+                force_https,
+                service_fee,
+                funding_source_primary,
+           ),
+        )
+
+        row = g.db.fetchone("SELECT * FROM admin WHERE 1")
+    return Admin(**row) if row else None
+
+def get_funding(
+    CLightningWallet: Optional[str] =  '',
+    LndRestWallet: Optional[str] =  '',
+    LndWallet: Optional[str] =  '',
+    LntxbotWallet: Optional[str] =  '',
+    LNPayWallet: Optional[str] =  '',
+    LnbitsWallet: Optional[str] =  '',
+    OpenNodeWallet: Optional[str] =  '',
+    ) -> List[Funding]:
+    sources = [CLightningWallet, LndRestWallet, LndWallet, LntxbotWallet, LNPayWallet, LnbitsWallet, OpenNodeWallet]
+    for source in sources:
+        fsource = ['1','1','1','1','1','1','1','1','1','1']
+        tsource = source.split(',')
+        num = 0 
+        for ttsource in tsource:
+            fsource[num] = ttsource
+            num = num + 1
+        print(fsource)
+        if int(fsource[7]) == 1:
+            g.db.execute(
+                """
+                UPDATE funding
+                SET endpoint = ?, port = ?, read_key = ?, invoice_key = ?, admin_key = ?, cert = ?
+                WHERE backend_wallet = ?
+                """,
+            (
+                fsource[0],
+                fsource[1],
+                fsource[2],
+                fsource[3],
+                fsource[4],
+                fsource[5],
+                fsource[8],
+           ),
+        )
+
+    rows = g.db.fetchall("SELECT * FROM funding")
+    return [Funding(**row) for row in rows]
+
