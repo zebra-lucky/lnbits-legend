@@ -473,8 +473,8 @@ async def get_balance_notify(
 
 async def get_admin(
     user: Optional[str] = None, 
-    site_title: Optional[str] = None,
-    tagline: Optional[str] = None,
+    site_title: Optional[str] = "LNbits",
+    tagline: Optional[str] = "Lightning-network wallet/accounts system",
     primary_color: Optional[str] = None, 
     secondary_color: Optional[str] = None,
     allowed_users: Optional[str] = None, 
@@ -515,7 +515,7 @@ async def get_admin(
             funding_source_primary,
         ),
     )
-    row = g.db.fetchone("SELECT * FROM admin WHERE 1")
+    row = await (conn or db).fetchone("SELECT * FROM admin WHERE 1")
     return Admin(**row) if row else None
 
 async def get_funding(
@@ -555,6 +555,6 @@ async def get_funding(
            ),
         )
 
-    rows = g.db.fetchall("SELECT * FROM funding")
+    rows = await (conn or db).fetchone("SELECT * FROM funding")
     return [Funding(**row) for row in rows]
 

@@ -64,7 +64,7 @@ async def extensions():
         await update_user_extension(
             user_id=g.user.id, extension=extension_to_disable, active=0
         )
-    admin = get_admin()
+    admin = await get_admin()
     is_admin = None
     if g.user.id == admin[0]:
         is_admin = admin[0]
