@@ -173,7 +173,7 @@ async def m005_balance_check_balance_notify(db):
 
     await db.execute(
         """
-        CREATE TABLE balance_check (
+        CREATE TABLE IF NOT EXISTS balance_check (
           wallet INTEGER NOT NULL REFERENCES wallets (id),
           service TEXT NOT NULL,
           url TEXT NOT NULL,
@@ -185,7 +185,7 @@ async def m005_balance_check_balance_notify(db):
 
     await db.execute(
         """
-        CREATE TABLE balance_notify (
+        CREATE TABLE IF NOT EXISTS balance_notify (
           wallet INTEGER NOT NULL REFERENCES wallets (id),
           url TEXT NOT NULL,
 
