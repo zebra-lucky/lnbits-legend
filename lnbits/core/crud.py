@@ -519,7 +519,6 @@ def get_admin(
                 funding_source_primary,
            ),
         )
-
         row = g.db.fetchone("SELECT * FROM admin WHERE 1")
     return Admin(**row) if row else None
 
