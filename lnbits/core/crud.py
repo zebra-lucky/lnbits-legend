@@ -471,7 +471,7 @@ async def get_balance_notify(
 # admin
 # --------
 
-def get_admin(
+async def get_admin(
     user: Optional[str] = None, 
     site_title: Optional[str] = None,
     tagline: Optional[str] = None,
@@ -492,37 +492,33 @@ def get_admin(
     LNPayWallet: Optional[str] =  '',
     LnbitsWallet: Optional[str] =  '',
     OpenNodeWallet: Optional[str] =  '',
-
-    ) -> Optional[Admin]:
+    conn: Optional[Connection] = None,
+) -> Optional[Admin]:
+    await (conn or db).execute(
+        """
+        UPDATE admin
+        SET user = ?, site_title = ?, tagline = ?, primary_color = ?, secondary_color = ?, allowed_users = ?, default_wallet_name = ?, data_folder = ?, disabled_ext = ?, force_https = ?, service_fee = ?, funding_source = ?
+        WHERE 1
+        """,
+        (
+            user,
+            site_title,
+            tagline,
+            primary_color,
+            secondary_color,
+            allowed_users,
+            default_wallet_name,
+            data_folder,
+            disabled_ext,
+            force_https,
+            service_fee,
+            funding_source_primary,
+        ),
+    )
     row = g.db.fetchone("SELECT * FROM admin WHERE 1")
-    if not user:
-        return Admin(**row) if row else None
-    if not row[0] or user != None:
-        g.db.execute(
-            """
-            UPDATE admin
-            SET user = ?, site_title = ?, tagline = ?, primary_color = ?, secondary_color = ?, allowed_users = ?, default_wallet_name = ?, data_folder = ?, disabled_ext = ?, force_https = ?, service_fee = ?, funding_source = ?
-            WHERE 1
-            """,
-            (
-                user,
-                site_title,
-                tagline,
-                primary_color,
-                secondary_color,
-                allowed_users,
-                default_wallet_name,
-                data_folder,
-                disabled_ext,
-                force_https,
-                service_fee,
-                funding_source_primary,
-           ),
-        )
-        row = g.db.fetchone("SELECT * FROM admin WHERE 1")
     return Admin(**row) if row else None
 
-def get_funding(
+async def get_funding(
     CLightningWallet: Optional[str] =  '',
     LndRestWallet: Optional[str] =  '',
     LndWallet: Optional[str] =  '',
@@ -530,6 +526,7 @@ def get_funding(
     LNPayWallet: Optional[str] =  '',
     LnbitsWallet: Optional[str] =  '',
     OpenNodeWallet: Optional[str] =  '',
+    conn: Optional[Connection] = None,
     ) -> List[Funding]:
     sources = [CLightningWallet, LndRestWallet, LndWallet, LntxbotWallet, LNPayWallet, LnbitsWallet, OpenNodeWallet]
     for source in sources:
@@ -541,7 +538,7 @@ def get_funding(
             num = num + 1
         print(fsource)
         if int(fsource[7]) == 1:
-            g.db.execute(
+            await (conn or db).execute(
                 """
                 UPDATE funding
                 SET endpoint = ?, port = ?, read_key = ?, invoice_key = ?, admin_key = ?, cert = ?

@@ -195,7 +195,7 @@ async def m005_balance_check_balance_notify(db):
     )
 
 
-def m003_create_admin_table(db):
+async def m003_create_admin_table(db):
     user = None
     site_title = None
     tagline = ""
@@ -236,7 +236,7 @@ def m003_create_admin_table(db):
     if getenv("LNBITS_BACKEND_WALLET_CLASS"):
         funding_source = getenv("LNBITS_BACKEND_WALLET_CLASS")
 
-    db.execute(
+    await db.execute(
         """
         CREATE TABLE IF NOT EXISTS admin (
             user TEXT,
@@ -254,7 +254,7 @@ def m003_create_admin_table(db):
         );
     """
     )
-    db.execute(
+    await db.execute(
         """
         INSERT INTO admin (user, site_title, tagline, primary_color, secondary_color, allowed_users, default_wallet_name, data_folder, disabled_ext, force_https, service_fee, funding_source)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -276,11 +276,11 @@ def m003_create_admin_table(db):
     )
 
 
-def m003_create_funding_table(db):
+async def m003_create_funding_table(db):
 
     # Make the funding table,  if it does not already exist
 
-    db.execute(
+    await db.execute(
         """
         CREATE TABLE IF NOT EXISTS funding (
             id TEXT PRIMARY KEY,
@@ -298,16 +298,16 @@ def m003_create_funding_table(db):
 
     # Get the funding source rows back if they exist
 
-    CLightningWallet = db.fetchall("SELECT * FROM funding WHERE backend_wallet = ?", ("CLightningWallet",))
-    LnbitsWallet = db.fetchall("SELECT * FROM funding WHERE backend_wallet = ?", ("LnbitsWallet",))
-    LndWallet = db.fetchall("SELECT * FROM funding WHERE backend_wallet = ?", ("LndWallet",))
-    LndRestWallet = db.fetchall("SELECT * FROM funding WHERE backend_wallet = ?", ("LndRestWallet",))
-    LNPayWallet = db.fetchall("SELECT * FROM funding WHERE backend_wallet = ?", ("LNPayWallet",))
-    LntxbotWallet = db.fetchall("SELECT * FROM funding WHERE backend_wallet = ?", ("LntxbotWallet",))
-    OpenNodeWallet = db.fetchall("SELECT * FROM funding WHERE backend_wallet = ?", ("OpenNodeWallet",))
+    CLightningWallet = await db.fetchall("SELECT * FROM funding WHERE backend_wallet = ?", ("CLightningWallet",))
+    LnbitsWallet = await db.fetchall("SELECT * FROM funding WHERE backend_wallet = ?", ("LnbitsWallet",))
+    LndWallet = await db.fetchall("SELECT * FROM funding WHERE backend_wallet = ?", ("LndWallet",))
+    LndRestWallet = await db.fetchall("SELECT * FROM funding WHERE backend_wallet = ?", ("LndRestWallet",))
+    LNPayWallet = await db.fetchall("SELECT * FROM funding WHERE backend_wallet = ?", ("LNPayWallet",))
+    LntxbotWallet = await db.fetchall("SELECT * FROM funding WHERE backend_wallet = ?", ("LntxbotWallet",))
+    OpenNodeWallet = await db.fetchall("SELECT * FROM funding WHERE backend_wallet = ?", ("OpenNodeWallet",))
 
 
-    db.execute(
+    await db.execute(
         """
         INSERT INTO funding (id, backend_wallet, endpoint)
         VALUES (?, ?, ?)
@@ -315,7 +315,7 @@ def m003_create_funding_table(db):
         (urlsafe_short_hash(), "CLightningWallet", getenv("CLIGHTNING_RPC")),
     )
 
-    db.execute(
+    await db.execute(
         """
         INSERT INTO funding (id, backend_wallet, endpoint, invoice_key, admin_key)
         VALUES (?, ?, ?, ?, ?)
@@ -329,7 +329,7 @@ def m003_create_funding_table(db):
         ),
     )
 
-    db.execute(
+    await db.execute(
         """
         INSERT INTO funding (id, backend_wallet, endpoint, port, read_key, invoice_key, admin_key, cert)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -347,7 +347,7 @@ def m003_create_funding_table(db):
     )
 
 
-    db.execute(
+    await db.execute(
         """
         INSERT INTO funding (id, backend_wallet, endpoint, read_key, invoice_key, admin_key, cert)
         VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -363,7 +363,7 @@ def m003_create_funding_table(db):
         ),
     )
 
-    db.execute(
+    await db.execute(
         """
         INSERT INTO funding (id, backend_wallet, endpoint, read_key, invoice_key, admin_key, cert)
         VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -380,7 +380,7 @@ def m003_create_funding_table(db):
     )
 
 
-    db.execute(
+    await db.execute(
         """
         INSERT INTO funding (id, backend_wallet, endpoint, invoice_key, admin_key)
         VALUES (?, ?, ?, ?, ?)
@@ -395,7 +395,7 @@ def m003_create_funding_table(db):
     )
 
 
-    db.execute(
+    await db.execute(
         """
         INSERT INTO funding (id, backend_wallet, endpoint, invoice_key, admin_key)
         VALUES (?, ?, ?, ?, ?)

@@ -2,7 +2,7 @@ from quart import g, render_template, request
 
 from lnbits.decorators import check_user_exists, validate_uuids
 from lnbits.extensions.admin import admin_ext
-from lnbits.core.crud import get_admin, get_funding
+from lnbits.core.crud import get_admin, get_funding, get_user, create_account
 from lnbits.settings import WALLET
 
 
