@@ -1,4 +1,4 @@
-from flask import jsonify, g
+from quart import jsonify, g
 from http import HTTPStatus
 from .crud import update_wallet_balance
 from lnbits.extensions.admin import admin_ext

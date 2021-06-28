@@ -1,4 +1,4 @@
-from flask import Blueprint
+from quart import Blueprint
 
 
 admin_ext: Blueprint = Blueprint("admin", __name__, static_folder="static", template_folder="templates")

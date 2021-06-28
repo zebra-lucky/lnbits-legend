@@ -1,4 +1,4 @@
-from flask import g, render_template, request
+from quart import g, render_template, request
 
 from lnbits.decorators import check_user_exists, validate_uuids
 from lnbits.extensions.admin import admin_ext
