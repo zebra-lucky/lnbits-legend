@@ -6,7 +6,7 @@
   <div class="col-12 col-md-7 q-gutter-y-md">
     <q-card>
       <q-card-section>
-        <q-btn unelevated color="deep-purple" @click="formDialog.show = true"
+        <q-btn unelevated color="primary" @click="formDialog.show = true"
           >Make SatoshiGo game</q-btn
         >
       </q-card-section>
@@ -159,24 +159,24 @@
           label="game title *"
         ></q-input>
         <q-input
-        filled
-        dense
-        v-model.trim="formDialog.data.description"
-        type="text"
-        label="game description *"
-      ></q-input>
+          filled
+          dense
+          v-model.trim="formDialog.data.description"
+          type="text"
+          label="game description *"
+        ></q-input>
         <div class="row q-mt-lg">
           <q-btn
             v-if="formDialog.data.id"
             unelevated
-            color="deep-purple"
+            color="primary"
             type="submit"
             >Update satoshigo game</q-btn
           >
           <q-btn
             v-else
             unelevated
-            color="deep-purple"
+            color="primary"
             :disable="
                 formDialog.data.wallet == null ||
                 formDialog.data.title == null"
@@ -205,7 +205,7 @@
         <strong>ID:</strong> {{ qrCodeDialog.data.hash }}<br />
         <strong>Unique:</strong> {{ qrCodeDialog.data.is_unique }}<span
           v-if="qrCodeDialog.data.is_unique"
-          class="text-deep-purple"
+          class="text-primary"
         >
           (QR code will change after each satoshigoal)</span
         ><br />
@@ -216,7 +216,7 @@
         qrCodeDialog.data.uses }}
         <q-linear-progress
           :value="qrCodeDialog.data.used / qrCodeDialog.data.uses"
-          color="deep-purple"
+          color="primary"
           class="q-mt-sm"
         ></q-linear-progress>
       </p>
