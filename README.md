@@ -12,6 +12,8 @@ LNbits
 
 # LNbits v0.3 BETA, free and open-source lightning-network wallet/accounts system
 
+(Join us on [https://t.me/lnbits](https://t.me/lnbits))
+
 Use [lnbits.com](https://lnbits.com), or run your own LNbits server!
 
 LNbits is a very simple Python server that sits on top of any funding source, and can be used as:
@@ -27,6 +29,8 @@ LNbits can run on top of any lightning-network funding source, currently there i
 See [lnbits.org](https://lnbits.org) for more detailed documentation.
 
 Checkout the LNbits [YouTube](https://www.youtube.com/playlist?list=PLPj3KCksGbSYG0ciIQUWJru1dWstPHshe) video series.
+
+Checkout [Awesome-LNbits](https://github.com/cryptoteun/awesome-lnbits), a currated list of projects made using LNbits. 
 
 LNbits is inspired by all the great work of [opennode.com](https://www.opennode.com/), and in particular [lnpay.co](https://lnpay.co/). Both work as excellent funding sources for LNbits.
 

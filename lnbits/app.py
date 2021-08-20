@@ -18,11 +18,12 @@ from .helpers import (
 )
 from .proxy_fix import ASGIProxyFix
 from .tasks import (
+    webhook_handler,
+    invoice_listener,
     run_deferred_async,
     check_pending_payments,
-    invoice_listener,
     internal_invoice_listener,
-    webhook_handler,
+    catch_everything_and_restart,
 )
 from .settings import WALLET
 
@@ -104,6 +105,9 @@ def register_assets(app: QuartTrio):
 def register_filters(app: QuartTrio):
     """Jinja filters."""
     app.jinja_env.globals["SITE_TITLE"] = app.config["LNBITS_SITE_TITLE"]
+    app.jinja_env.globals["SITE_TAGLINE"] = app.config["LNBITS_SITE_TAGLINE"]
+    app.jinja_env.globals["SITE_DESCRIPTION"] = app.config["LNBITS_SITE_DESCRIPTION"]
+    app.jinja_env.globals["LNBITS_THEME_OPTIONS"] = app.config["LNBITS_THEME_OPTIONS"]
     app.jinja_env.globals["LNBITS_VERSION"] = app.config["LNBITS_COMMIT"]
     app.jinja_env.globals["EXTENSIONS"] = get_valid_extensions()
 
@@ -115,10 +119,10 @@ def register_async_tasks(app):
 
     @app.before_serving
     async def listeners():
-        run_deferred_async(app.nursery)
-        app.nursery.start_soon(check_pending_payments)
-        app.nursery.start_soon(invoice_listener, app.nursery)
-        app.nursery.start_soon(internal_invoice_listener, app.nursery)
+        run_deferred_async()
+        app.nursery.start_soon(catch_everything_and_restart, check_pending_payments)
+        app.nursery.start_soon(catch_everything_and_restart, invoice_listener)
+        app.nursery.start_soon(catch_everything_and_restart, internal_invoice_listener)
 
     @app.after_serving
     async def stop_listeners():
@@ -128,6 +132,7 @@ def register_async_tasks(app):
 def register_exception_handlers(app):
     @app.errorhandler(Exception)
     async def basic_error(err):
+        print("handled error", traceback.format_exc())
         etype, value, tb = sys.exc_info()
         traceback.print_exception(etype, err, tb)
         exc = traceback.format_exc()

@@ -107,7 +107,6 @@
       return {
         currentPlaylist: [],
         currentlyPlaying: {},
-        cancelListener: () => {},
         playlists: {},
         playlist: '',
         heavyList: [],
@@ -124,7 +123,10 @@
           artist: '',
           image: '',
           id: '',
-          showQR: false
+          showQR: false,
+          data: null,
+          dismissMsg: null,
+          paymentChecker: null
         }
       }
     },
@@ -134,14 +136,6 @@
       }
     },
     methods: {
-      cancelPayment: function () {
-        this.paymentReq = null
-        clearInterval(this.paymentDialog.checker)
-        if (this.paymentDialog.dismissMsg) {
-          this.paymentDialog.dismissMsg()
-        }
-      },
-      closeReceiveDialog() {},
       payForSong(song_id, name, artist, image) {
         self = this
         self.receive.name = name
@@ -152,6 +146,7 @@
       },
       getInvoice(song_id) {
         self = this
+        var dialog = this.receive
         LNbits.api
           .request(
             'GET',
@@ -164,52 +159,57 @@
             self.receive.paymentReq = response.data[0][1]
             self.receive.paymentHash = response.data[0][0]
             self.receive.dialogues.second = true
+            dialog.data = response.data
 
-            var paymentChecker = setInterval(function () {
-              if (!self.paid) {
-                self.checkInvoice(self.receive.paymentHash, '{{ juke_id }}')
-              }
-              if (self.paid) {
-                clearInterval(paymentChecker)
-                self.paid = true
-                self.receive.dialogues.first = false
-                self.receive.dialogues.second = false
-                self.$q.notify({
-                  message: 'Processing'
-                })
-                LNbits.api
-                  .request(
-                    'GET',
-                    '/jukebox/api/v1/jukebox/jb/invoicep/' +
-                      song_id +
-                      '/{{ juke_id }}/' +
-                      self.receive.paymentHash
-                  )
-                  .then(function (response1) {
-                    if (response1.data[2] == song_id) {
-                      setTimeout(function () {
-                        self.getCurrent()
-                      }, 500)
-                      self.$q.notify({
-                        color: 'green',
-                        message:
-                          'Success! "' +
-                          self.receive.name +
-                          '" will be played soon',
-                        timeout: 3000
+            dialog.dismissMsg = self.$q.notify({
+              timeout: 0,
+              message: 'Waiting for payment...'
+            })
+            dialog.paymentChecker = setInterval(function () {
+              LNbits.api
+                .request(
+                  'GET',
+                  '/jukebox/api/v1/jukebox/jb/checkinvoice/' +
+                    self.receive.paymentHash +
+                    '/{{ juke_id }}'
+                )
+                .then(function (res) {
+                  console.log(res)
+                  if (res.data.paid == true) {
+                    clearInterval(dialog.paymentChecker)
+                    LNbits.api
+                      .request(
+                        'GET',
+                        '/jukebox/api/v1/jukebox/jb/invoicep/' +
+                          self.receive.id +
+                          '/{{ juke_id }}/' +
+                          self.receive.paymentHash
+                      )
+                      .then(function (ress) {
+                        console.log(ress)
+                        if (ress.data[2] == self.receive.id) {
+                          clearInterval(dialog.paymentChecker)
+                          dialog.dismissMsg()
+                          self.receive.dialogues.second = false
+
+                          self.$q.notify({
+                            type: 'positive',
+                            message:
+                              'Success! "' +
+                              self.receive.name +
+                              '" will be played soon',
+                            timeout: 3000
+                          })
+                          self.receive.dialogues.first = false
+                        }
                       })
-
-                      self.paid = false
-                      response1 = []
-                    }
-                  })
-                  .catch(err => {
-                    LNbits.utils.notifyApiError(err)
-                    self.paid = false
-                    response1 = []
-                  })
-              }
+                  }
+                })
             }, 3000)
+
+            setTimeout(() => {
+              self.getCurrent()
+            }, 500)
           })
           .catch(err => {
             self.$q.notify({
@@ -219,24 +219,6 @@
                 '<center>Device is not connected! <br/> Ask the host to turn on their device and have Spotify open</center>',
               timeout: 5000
             })
-          })
-      },
-      checkInvoice(juke_id, paymentHash) {
-        var self = this
-        LNbits.api
-          .request(
-            'GET',
-            '/jukebox/api/v1/jukebox/jb/checkinvoice/' +
-              juke_id +
-              '/' +
-              paymentHash,
-            'filla'
-          )
-          .then(function (response) {
-            self.paid = response.data.paid
-          })
-          .catch(function (error) {
-            LNbits.utils.notifyApiError(error)
           })
       },
       getCurrent() {
@@ -273,7 +255,7 @@
     created() {
       this.getCurrent()
       this.playlists = JSON.parse('{{ playlists | tojson }}')
-
+      this.selectedWallet.inkey = '{{ inkey }}'
       self = this
       LNbits.api
         .request(
@@ -289,8 +271,6 @@
         .catch(err => {
           LNbits.utils.notifyApiError(err)
         })
-
-      // this.startPaymentNotifier()
     }
   })
 </script>
