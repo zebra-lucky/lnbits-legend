@@ -9,7 +9,7 @@ from . import db
 from .models import Products, Orders, Indexers
 
 import httpx
-
+from lnbits.helpers import urlsafe_short_hash
 import re
 
 regex = re.compile(
@@ -37,8 +37,7 @@ async def create_diagonalleys_product(
 ) -> Products:
     returning = "" if db.type == SQLITE else "RETURNING ID"
     method = db.execute if db.type == SQLITE else db.fetchone
-
-    product_id = urlsafe_b64encode(uuid4().bytes_le).decode("utf-8")
+    product_id = urlsafe_short_hash()
     # with open_ext_db("diagonalley") as db:
     result = await (method)(
         f"""
@@ -57,12 +56,6 @@ async def create_diagonalleys_product(
             quantity,
         ),
     )
-
-    if db.type == SQLITE:
-        product_id = result._result_proxy.lastrowid
-    else:
-        product_id = result[0]
-
     product = await get_diagonalleys_product(product_id)
     assert product, "Newly created product couldn't be retrieved"
     return product
@@ -125,7 +118,7 @@ async def create_diagonalleys_indexer(
     returning = "" if db.type == SQLITE else "RETURNING ID"
     method = db.execute if db.type == SQLITE else db.fetchone
 
-    indexer_id = urlsafe_b64encode(uuid4().bytes_le).decode("utf-8")
+    indexer_id = urlsafe_short_hash()
     result = await (method)(
         f"""
         INSERT INTO diagonalley.indexers (
@@ -264,7 +257,7 @@ async def create_diagonalleys_order(
     returning = "" if db.type == SQLITE else "RETURNING ID"
     method = db.execute if db.type == SQLITE else db.fetchone
 
-    order_id = urlsafe_b64encode(uuid4().bytes_le).decode("utf-8")
+    order_id = urlsafe_short_hash()
     result = await (method)(
         f"""
             INSERT INTO diagonalley.orders (id, productid, wallet, product,

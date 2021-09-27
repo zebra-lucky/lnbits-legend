@@ -1,3 +1,9 @@
+<pre id="json"></pre>
+
 <script>
-  console.log('{{ stall }}')
+  document.getElementById('json').innerHTML = JSON.stringify(
+    '{{ stall }}',
+    null,
+    2
+  )
 </script>

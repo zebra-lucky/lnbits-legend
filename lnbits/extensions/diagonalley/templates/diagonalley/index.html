@@ -64,6 +64,13 @@
               <q-td v-for="col in props.cols" :key="col.name" :props="props">
                 {{ col.value }}
               </q-td>
+              <q-td class="text-center" auto-width>
+                <img
+                  v-if="props.row.image"
+                  :src="props.row.image"
+                  style="height: 1.5em"
+                />
+              </q-td>
               <q-td auto-width>
                 <q-btn
                   flat
@@ -256,13 +263,28 @@
           v-model.trim="productDialog.data.description"
           label="Description"
         ></q-input>
-        <q-input
+        <q-file
           filled
           dense
-          v-model.trim="productDialog.data.image"
-          label="Image"
-          placeholder="Imagur link (max 500/500px)"
-        ></q-input>
+          capture="environment"
+          accept="image/jpeg, image/png"
+          :max-file-size="3*1024**2"
+          label="Small image (optional)"
+          clearable
+          @input="imageAdded"
+          @clear="imageCleared"
+        >
+          <template v-if="productDialog.data.image" v-slot:before>
+            <img style="height: 1em" :src="productDialog.data.image" />
+          </template>
+          <template v-if="productDialog.data.image" v-slot:append>
+            <q-icon
+              name="cancel"
+              @click.stop.prevent="imageCleared"
+              class="cursor-pointer"
+            />
+          </template>
+        </q-file>
         <q-input
           filled
           dense
@@ -403,7 +425,9 @@
   </q-dialog>
 </div>
 {% endblock %} {% block scripts %} {{ window_vars(user) }}
+<script src="https://cdn.jsdelivr.net/npm/pica@6.1.1/dist/pica.min.js"></script>
 <script>
+  const pica = window.pica()
   var mapDiagonAlley = function (obj) {
     obj.date = Quasar.utils.date.formatDate(
       new Date(obj.time * 1000),
@@ -543,7 +567,6 @@
               label: 'Categories',
               field: 'categories'
             },
-            {name: 'image', align: 'left', label: 'Image', field: 'image'},
             {name: 'price', align: 'left', label: 'Price', field: 'price'},
             {
               name: 'quantity',
@@ -814,6 +837,29 @@
         } else {
           this.createProduct(data)
         }
+      },
+      imageAdded(file) {
+        let blobURL = URL.createObjectURL(file)
+        let image = new Image()
+        image.src = blobURL
+        image.onload = async () => {
+          let canvas = document.createElement('canvas')
+          canvas.setAttribute('width', 100)
+          canvas.setAttribute('height', 100)
+          await pica.resize(image, canvas, {
+            quality: 0,
+            alpha: true,
+            unsharpAmount: 95,
+            unsharpRadius: 0.9,
+            unsharpThreshold: 70
+          })
+          this.productDialog.data.image = canvas.toDataURL()
+          this.productDialog = {...this.productDialog}
+        }
+      },
+      imageCleared() {
+        this.productDialog.data.image = null
+        this.productDialog = {...this.productDialog}
       },
       updateProduct: function (data) {
         var self = this
