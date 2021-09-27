@@ -1,4 +1,10 @@
-from typing import NamedTuple
+import json
+from urllib.parse import urlparse, urlunparse, parse_qs, urlencode, ParseResult
+from quart import url_for
+from typing import NamedTuple, Optional, Dict
+from sqlite3 import Row
+from lnbits.lnurl import encode as lnurl_encode  # type: ignore
+from lnurl.types import LnurlPayMetadata  # type: ignore
 
 
 class Indexers(NamedTuple):
@@ -14,6 +20,11 @@ class Indexers(NamedTuple):
     zone2cost: int
     email: str
 
+    @classmethod
+    def from_row(cls, row: Row) -> "Indexers":
+        data = dict(row)
+        return cls(**data)
+
 
 class Products(NamedTuple):
     id: str
@@ -24,6 +35,11 @@ class Products(NamedTuple):
     image: str
     price: int
     quantity: int
+
+    @classmethod
+    def from_row(cls, row: Row) -> "Products":
+        data = dict(row)
+        return cls(**data)
 
 
 class Orders(NamedTuple):
@@ -38,3 +54,9 @@ class Orders(NamedTuple):
     invoiceid: str
     paid: bool
     shipped: bool
+
+    @classmethod
+    def from_row(cls, row: Row) -> "Orders":
+        data = dict(row)
+        return cls(**data)
+

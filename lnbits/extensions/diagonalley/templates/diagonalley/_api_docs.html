@@ -41,7 +41,7 @@
       <q-card-section>
         <code
           ><span class="text-light-blue">GET</span>
-          /api/v1/diagonalley/stall/products/&lt;indexer_id&gt;</code
+          /diagonalley/api/v1/stall/products/&lt;indexer_id&gt;</code
         >
         <h5 class="text-caption q-mt-sm q-mb-none">Body (application/json)</h5>
         <h5 class="text-caption q-mt-sm q-mb-none">
@@ -51,7 +51,7 @@
         <h5 class="text-caption q-mt-sm q-mb-none">Curl example</h5>
         <code
           >curl -X GET {{ request.url_root
-          }}diagonalley/api/v1/diagonalley/stall/products/&lt;indexer_id&gt;</code
+          }}api/v1/stall/products/&lt;indexer_id&gt;</code
         >
       </q-card-section>
     </q-card>
@@ -66,7 +66,7 @@
       <q-card-section>
         <code
           ><span class="text-light-green">POST</span>
-          /api/v1/diagonalley/stall/order/&lt;indexer_id&gt;</code
+          /diagonalley/api/v1/stall/order/&lt;indexer_id&gt;</code
         >
         <h5 class="text-caption q-mt-sm q-mb-none">Body (application/json)</h5>
         <code
@@ -84,7 +84,7 @@
         <h5 class="text-caption q-mt-sm q-mb-none">Curl example</h5>
         <code
           >curl -X POST {{ request.url_root
-          }}diagonalley/api/v1/diagonalley/stall/order/&lt;indexer_id&gt; -d
+          }}api/v1/stall/order/&lt;indexer_id&gt; -d
           '{"id": &lt;product_id&&gt;, "email": &lt;customer_email&gt;,
           "address": &lt;customer_address&gt;, "quantity": 2, "shippingzone":
           1}' -H "Content-type: application/json"
@@ -103,7 +103,7 @@
       <q-card-section>
         <code
           ><span class="text-light-blue">GET</span>
-          /diagonalley/api/v1/diagonalley/stall/checkshipped/&lt;checking_id&gt;</code
+          /diagonalley/api/v1/stall/checkshipped/&lt;checking_id&gt;</code
         >
         <h5 class="text-caption q-mt-sm q-mb-none">Headers</h5>
         <h5 class="text-caption q-mt-sm q-mb-none">
@@ -113,7 +113,7 @@
         <h5 class="text-caption q-mt-sm q-mb-none">Curl example</h5>
         <code
           >curl -X GET {{ request.url_root
-          }}diagonalley/api/v1/diagonalley/stall/checkshipped/&lt;checking_id&gt;
+          }}api/v1/stall/checkshipped/&lt;checking_id&gt;
           -H "Content-type: application/json"</code
         >
       </q-card-section>

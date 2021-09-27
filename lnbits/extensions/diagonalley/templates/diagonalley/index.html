@@ -579,7 +579,7 @@
         LNbits.api
           .request(
             'GET',
-            '/diagonalley/api/v1/diagonalley/indexers?all_wallets',
+            '/diagonalley/api/v1/indexers?all_wallets',
             this.g.user.wallets[0].inkey
           )
           .then(function (response) {
@@ -619,7 +619,7 @@
         LNbits.api
           .request(
             'PUT',
-            '/diagonalley/api/v1/diagonalley/indexers' + data.id,
+            '/diagonalley/api/v1/indexers' + data.id,
             _.findWhere(this.g.user.wallets, {
               id: this.indexerDialog.data.wallet
             }).inkey,
@@ -652,7 +652,7 @@
         LNbits.api
           .request(
             'POST',
-            '/diagonalley/api/v1/diagonalley/indexers',
+            '/diagonalley/api/v1/indexers',
             _.findWhere(this.g.user.wallets, {
               id: this.indexerDialog.data.wallet
             }).inkey,
@@ -678,7 +678,7 @@
             LNbits.api
               .request(
                 'DELETE',
-                '/diagonalley/api/v1/diagonalley/indexers/' + indexerId,
+                '/diagonalley/api/v1/indexers/' + indexerId,
                 _.findWhere(self.g.user.wallets, {id: indexer.wallet}).inkey
               )
               .then(function (response) {
@@ -700,7 +700,7 @@
         LNbits.api
           .request(
             'GET',
-            '/diagonalley/api/v1/diagonalley/orders?all_wallets',
+            '/diagonalley/api/v1/orders?all_wallets',
             this.g.user.wallets[0].inkey
           )
           .then(function (response) {
@@ -721,7 +721,7 @@
         LNbits.api
           .request(
             'POST',
-            '/diagonalley/api/v1/diagonalley/orders',
+            '/diagonalley/api/v1/orders',
             _.findWhere(this.g.user.wallets, {id: this.orderDialog.data.wallet})
               .inkey,
             data
@@ -745,7 +745,7 @@
             LNbits.api
               .request(
                 'DELETE',
-                '/diagonalley/api/v1/diagonalley/orders/' + orderId,
+                '/diagonalley/api/v1/orders/' + orderId,
                 _.findWhere(self.g.user.wallets, {id: order.wallet}).inkey
               )
               .then(function (response) {
@@ -764,7 +764,7 @@
         LNbits.api
           .request(
             'GET',
-            '/diagonalley/api/v1/diagonalley/orders/shipped/' + order_id,
+            '/diagonalley/api/v1/orders/shipped/' + order_id,
             this.g.user.wallets[0].inkey
           )
           .then(function (response) {
@@ -782,7 +782,7 @@
         LNbits.api
           .request(
             'GET',
-            '/diagonalley/api/v1/diagonalley/products?all_wallets',
+            '/diagonalley/api/v1/products?all_wallets',
             this.g.user.wallets[0].inkey
           )
           .then(function (response) {
@@ -820,7 +820,7 @@
         LNbits.api
           .request(
             'PUT',
-            '/diagonalley/api/v1/diagonalley/products' + data.id,
+            '/diagonalley/api/v1/products' + data.id,
             _.findWhere(this.g.user.wallets, {
               id: this.productDialog.data.wallet
             }).inkey,
@@ -852,7 +852,7 @@
         LNbits.api
           .request(
             'POST',
-            '/diagonalley/api/v1/diagonalley/products',
+            '/diagonalley/api/v1/products',
             _.findWhere(this.g.user.wallets, {
               id: this.productDialog.data.wallet
             }).inkey,
@@ -877,7 +877,7 @@
             LNbits.api
               .request(
                 'DELETE',
-                '/diagonalley/api/v1/diagonalley/products/' + productId,
+                '/diagonalley/api/v1/products/' + productId,
                 _.findWhere(self.g.user.wallets, {id: product.wallet}).inkey
               )
               .then(function (response) {
