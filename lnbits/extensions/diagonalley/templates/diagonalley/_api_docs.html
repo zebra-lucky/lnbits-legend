@@ -11,9 +11,9 @@
       </h5>
       <p>
         Make a list of products to sell, point your list of products at a public
-        indexer. Buyers browse your products on the indexer, and pay you
-        directly. Ratings are managed by the indexer. Your stall can be listed
-        in multiple indexers, even over TOR, if you wish to be anonymous.<br />
+        relay. Buyers browse your products on the relay, and pay you directly.
+        Ratings are managed by the relay. Your stall can be listed in multiple
+        relays, even over TOR, if you wish to be anonymous.<br />
         More information on the
         <a href="https://github.com/lnbits/Diagon-Alley"
           >Diagon Alley Protocol</a
@@ -41,7 +41,7 @@
       <q-card-section>
         <code
           ><span class="text-light-blue">GET</span>
-          /diagonalley/api/v1/stall/products/&lt;indexer_id&gt;</code
+          /diagonalley/api/v1/stall/products/&lt;relay_id&gt;</code
         >
         <h5 class="text-caption q-mt-sm q-mb-none">Body (application/json)</h5>
         <h5 class="text-caption q-mt-sm q-mb-none">
@@ -51,7 +51,7 @@
         <h5 class="text-caption q-mt-sm q-mb-none">Curl example</h5>
         <code
           >curl -X GET {{ request.url_root
-          }}api/v1/stall/products/&lt;indexer_id&gt;</code
+          }}api/v1/stall/products/&lt;relay_id&gt;</code
         >
       </q-card-section>
     </q-card>
@@ -66,7 +66,7 @@
       <q-card-section>
         <code
           ><span class="text-light-green">POST</span>
-          /diagonalley/api/v1/stall/order/&lt;indexer_id&gt;</code
+          /diagonalley/api/v1/stall/order/&lt;relay_id&gt;</code
         >
         <h5 class="text-caption q-mt-sm q-mb-none">Body (application/json)</h5>
         <code
@@ -84,10 +84,9 @@
         <h5 class="text-caption q-mt-sm q-mb-none">Curl example</h5>
         <code
           >curl -X POST {{ request.url_root
-          }}api/v1/stall/order/&lt;indexer_id&gt; -d
-          '{"id": &lt;product_id&&gt;, "email": &lt;customer_email&gt;,
-          "address": &lt;customer_address&gt;, "quantity": 2, "shippingzone":
-          1}' -H "Content-type: application/json"
+          }}api/v1/stall/order/&lt;relay_id&gt; -d '{"id": &lt;product_id&&gt;,
+          "email": &lt;customer_email&gt;, "address": &lt;customer_address&gt;,
+          "quantity": 2, "shippingzone": 1}' -H "Content-type: application/json"
         </code>
       </q-card-section>
     </q-card>
@@ -113,8 +112,8 @@
         <h5 class="text-caption q-mt-sm q-mb-none">Curl example</h5>
         <code
           >curl -X GET {{ request.url_root
-          }}api/v1/stall/checkshipped/&lt;checking_id&gt;
-          -H "Content-type: application/json"</code
+          }}api/v1/stall/checkshipped/&lt;checking_id&gt; -H "Content-type:
+          application/json"</code
         >
       </q-card-section>
     </q-card>

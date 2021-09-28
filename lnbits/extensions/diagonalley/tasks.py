@@ -6,7 +6,7 @@ from lnbits.core import db as core_db
 from lnbits.core.models import Payment
 from lnbits.tasks import register_invoice_listener
 
-from .crud import get_diagonalleys_product
+from .crud import get_diagonalley_product
 
 
 async def register_listeners():
@@ -29,7 +29,7 @@ async def on_invoice_paid(payment: Payment) -> None:
         # this webhook has already been sent
         return
 
-    pay_link = await get_diagonalleys_product(payment.extra.get("link", -1))
+    pay_link = await get_diagonalley_product(payment.extra.get("link", -1))
     if pay_link and pay_link.webhook_url:
         async with httpx.AsyncClient() as client:
             try:

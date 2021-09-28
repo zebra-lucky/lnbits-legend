@@ -6,7 +6,7 @@ async def m001_initial(db):
         """
         CREATE TABLE diagonalley.products (
             id TEXT PRIMARY KEY,
-            wallet TEXT NOT NULL,
+            stall TEXT NOT NULL,
             product TEXT NOT NULL,
             categories TEXT NOT NULL,
             description TEXT NOT NULL,
@@ -18,22 +18,31 @@ async def m001_initial(db):
     )
 
     """
-    Initial indexers table.
+    Initial stalls table.
     """
     await db.execute(
         """
-        CREATE TABLE diagonalley.indexers (
+        CREATE TABLE diagonalley.stalls (
             id TEXT PRIMARY KEY,
             wallet TEXT NOT NULL,
-            shopname TEXT NOT NULL,
-            indexeraddress TEXT NOT NULL,
-            online BOOLEAN NOT NULL,
-            rating INTEGER NOT NULL,
-            shippingzone1 TEXT NOT NULL,
-            shippingzone2 TEXT NOT NULL,
-            zone1cost INTEGER NOT NULL,
-            zone2cost INTEGER NOT NULL,
-            email TEXT NOT NULL
+            name TEXT NOT NULL,
+            publickey TEXT NOT NULL,
+            privatekey TEXT NOT NULL,
+            relays TEXT NOT NULL
+        );
+    """
+    )
+
+    """
+    Initial zones table.
+    """
+    await db.execute(
+        """
+        CREATE TABLE diagonalley.zones (
+            id TEXT PRIMARY KEY,
+            wallet TEXT NOT NULL,
+            cost TEXT NOT NULL,
+            countries TEXT NOT NULL
         );
     """
     )

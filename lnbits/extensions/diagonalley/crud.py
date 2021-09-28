@@ -3,10 +3,11 @@ from uuid import uuid4
 from typing import List, Optional, Union
 
 from lnbits.settings import WALLET
+
 # from lnbits.db import open_ext_db
 from lnbits.db import SQLITE
 from . import db
-from .models import Products, Orders, Indexers
+from .models import Products, Orders, Stalls, Zones
 
 import httpx
 from lnbits.helpers import urlsafe_short_hash
@@ -25,15 +26,17 @@ regex = re.compile(
 
 ###Products
 
-async def create_diagonalleys_product(
+
+async def create_diagonalley_product(
     *,
-    wallet_id: str,
+    stall_id: str,
     product: str,
     categories: str,
     description: str,
     image: Optional[str] = None,
     price: int,
     quantity: int,
+    shippingzones: str,
 ) -> Products:
     returning = "" if db.type == SQLITE else "RETURNING ID"
     method = db.execute if db.type == SQLITE else db.fetchone
@@ -41,13 +44,13 @@ async def create_diagonalleys_product(
     # with open_ext_db("diagonalley") as db:
     result = await (method)(
         f"""
-        INSERT INTO diagonalley.products (id, wallet, product, categories, description, image, price, quantity)
+        INSERT INTO diagonalley.products (id, stall, product, categories, description, image, price, quantity, shippingzones)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         {returning}
         """,
         (
             product_id,
-            wallet_id,
+            stall_id,
             product,
             categories,
             description,
@@ -56,12 +59,12 @@ async def create_diagonalleys_product(
             quantity,
         ),
     )
-    product = await get_diagonalleys_product(product_id)
+    product = await get_diagonalley_product(product_id)
     assert product, "Newly created product couldn't be retrieved"
     return product
 
 
-async def update_diagonalleys_product(product_id: str, **kwargs) -> Optional[Indexers]:
+async def update_diagonalley_product(product_id: str, **kwargs) -> Optional[Stalls]:
     q = ", ".join([f"{field[0]} = ?" for field in kwargs.items()])
 
     # with open_ext_db("diagonalley") as db:
@@ -73,15 +76,17 @@ async def update_diagonalleys_product(product_id: str, **kwargs) -> Optional[Ind
         "SELECT * FROM diagonalley.products WHERE id = ?", (product_id,)
     )
 
-    return get_diagonalleys_indexer(product_id)
+    return get_diagonalley_stall(product_id)
 
 
-async def get_diagonalleys_product(product_id: str) -> Optional[Products]:
-    row = await db.fetchone("SELECT * FROM diagonalley.products WHERE id = ?", (product_id,))
+async def get_diagonalley_product(product_id: str) -> Optional[Products]:
+    row = await db.fetchone(
+        "SELECT * FROM diagonalley.products WHERE id = ?", (product_id,)
+    )
     return Products.from_row(row) if row else None
 
 
-async def get_diagonalleys_products(wallet_ids: Union[str, List[str]]) -> List[Products]:
+async def get_diagonalley_products(wallet_ids: Union[str, List[str]]) -> List[Products]:
     if isinstance(wallet_ids, str):
         wallet_ids = [wallet_ids]
 
@@ -91,157 +96,258 @@ async def get_diagonalleys_products(wallet_ids: Union[str, List[str]]) -> List[P
         f"""
         SELECT * FROM diagonalley.products WHERE wallet IN ({q})
         """,
-        (*wallet_ids,)
+        (*wallet_ids,),
     )
     return [Products.from_row(row) for row in rows]
 
 
-async def delete_diagonalleys_product(product_id: str) -> None:
+async def delete_diagonalley_product(product_id: str) -> None:
     await db.execute("DELETE FROM diagonalley.products WHERE id = ?", (product_id,))
 
 
-###Indexers
+###zones
 
 
-async def create_diagonalleys_indexer(
+async def create_diagonalley_zone(
     *,
-    wallet_id: str,
-    shopname: str,
-    indexeraddress: str,
-    shippingzone1: str,
-    shippingzone2: str,
-    zone1cost: int,
-    zone2cost: int,
-    email: str,
-) -> Indexers:
+    wallet: str,
+    cost: str,
+    countries: str,
+) -> Zones:
 
     returning = "" if db.type == SQLITE else "RETURNING ID"
     method = db.execute if db.type == SQLITE else db.fetchone
 
-    indexer_id = urlsafe_short_hash()
+    zone_id = urlsafe_short_hash()
     result = await (method)(
         f"""
-        INSERT INTO diagonalley.indexers (
+        INSERT INTO diagonalley.zones (
             id,
             wallet,
-            shopname,
-            indexeraddress,
-            online,
-            rating,
-            shippingzone1,
-            shippingzone2,
-            zone1cost,
-            zone2cost,
-            email
+            cost,
+            countries
+
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?)
         {returning}
         """,
-        (
-            indexer_id,
-            wallet_id,
-            shopname,
-            indexeraddress,
-            False,
-            0,
-            shippingzone1,
-            shippingzone2,
-            zone1cost,
-            zone2cost,
-            email,
-        ),
+        (zone_id, wallet, cost, countries),
     )
-    #if db.type == SQLITE:
-    #    indexer_id = result._result_proxy.lastrowid
-    #else:
-    #    indexer_id = result[0]
 
-    indexer = await get_diagonalleys_indexer(indexer_id)
-    assert indexer, "Newly created indexer couldn't be retrieved"
-    return indexer
+    zone = await get_diagonalley_zone(zone_id)
+    assert zone, "Newly created zone couldn't be retrieved"
+    return zone
 
 
-async def update_diagonalleys_indexer(indexer_id: str, **kwargs) -> Optional[Indexers]:
+async def update_diagonalley_zone(zone_id: str, **kwargs) -> Optional[Zones]:
     q = ", ".join([f"{field[0]} = ?" for field in kwargs.items()])
     await db.execute(
-        f"UPDATE diagonalley.indexers SET {q} WHERE id = ?", (*kwargs.values(), indexer_id),
+        f"UPDATE diagonalley.zones SET {q} WHERE id = ?",
+        (*kwargs.values(), zone_id),
     )
-    row = await db.fetchone("SELECT * FROM diagonalley.indexers WHERE id = ?", (indexer_id,))
-    return Indexers.from_row(row) if row else None
+    row = await db.fetchone("SELECT * FROM diagonalley.zones WHERE id = ?", (zone_id,))
+    return Zones.from_row(row) if row else None
 
 
-async def get_diagonalleys_indexer(indexer_id: str) -> Optional[Indexers]:
-    roww = await db.fetchone(
-        "SELECT * FROM diagonalley.indexers WHERE id = ?", (indexer_id,)
-    )
+async def get_diagonalley_zone(zone_id: str) -> Optional[Zones]:
+    roww = await db.fetchone("SELECT * FROM diagonalley.zones WHERE id = ?", (zone_id,))
 
     try:
-        x = httpx.get(roww["indexeraddress"] + "/" + roww["ratingkey"])
+        x = httpx.get(roww["zoneaddress"] + "/" + roww["ratingkey"])
         if x.status_code == 200:
-            print(x)
-            print("poo")
             await db.execute(
-                "UPDATE diagonalley.indexers SET online = ? WHERE id = ?",
+                "UPDATE diagonalley.zones SET online = ? WHERE id = ?",
                 (
                     True,
-                    indexer_id,
+                    zone_id,
                 ),
             )
         else:
-            await db.execute("UPDATE diagonalley.indexers SET online = ? WHERE id = ?", (False, indexer_id,),)
+            await db.execute(
+                "UPDATE diagonalley.zones SET online = ? WHERE id = ?",
+                (
+                    False,
+                    zone_id,
+                ),
+            )
     except:
         print("An exception occurred")
 
-    #with open_ext_db("diagonalley") as db:
-    row = await db.fetchone("SELECT * FROM diagonalley.indexers WHERE id = ?", (indexer_id,))
-    return Indexers.from_row(row) if row else None
+    # with open_ext_db("diagonalley") as db:
+    row = await db.fetchone("SELECT * FROM diagonalley.zones WHERE id = ?", (zone_id,))
+    return Zones.from_row(row) if row else None
 
 
-async def get_diagonalleys_indexers(wallet_ids: Union[str, List[str]]) -> List[Indexers]:
+async def get_diagonalley_zones(wallet_ids: Union[str, List[str]]) -> List[Zones]:
     if isinstance(wallet_ids, str):
         wallet_ids = [wallet_ids]
 
     q = ",".join(["?"] * len(wallet_ids))
     rows = await db.fetchall(
-        f"SELECT * FROM diagonalley.indexers WHERE wallet IN ({q})", (*wallet_ids,)
+        f"SELECT * FROM diagonalley.zones WHERE wallet IN ({q})", (*wallet_ids,)
     )
 
     for r in rows:
         try:
-            x = httpx.get(r["indexeraddress"] + "/" + r["ratingkey"])
+            x = httpx.get(r["zoneaddress"] + "/" + r["ratingkey"])
             if x.status_code == 200:
                 await db.execute(
-                        "UPDATE diagonalley.indexers SET online = ? WHERE id = ?",
-                        (
-                            True,
-                            r["id"],
-                        ),
-                    )
+                    "UPDATE diagonalley.zones SET online = ? WHERE id = ?",
+                    (
+                        True,
+                        r["id"],
+                    ),
+                )
             else:
                 await db.execute(
-                        "UPDATE diagonalley.indexers SET online = ? WHERE id = ?",
-                        (
-                            False,
-                            r["id"],
-                        ),
+                    "UPDATE diagonalley.zones SET online = ? WHERE id = ?",
+                    (
+                        False,
+                        r["id"],
+                    ),
                 )
         except:
             print("An exception occurred")
     q = ",".join(["?"] * len(wallet_ids))
     rows = await db.fetchall(
-        f"SELECT * FROM diagonalley.indexers WHERE wallet IN ({q})", (*wallet_ids,)
+        f"SELECT * FROM diagonalley.zones WHERE wallet IN ({q})", (*wallet_ids,)
     )
-    return [Indexers.from_row(row) for row in rows]
+    return [Zones.from_row(row) for row in rows]
 
 
-async def delete_diagonalleys_indexer(indexer_id: str) -> None:
-    await db.execute("DELETE FROM diagonalley.indexers WHERE id = ?", (indexer_id,))
+async def delete_diagonalley_zone(zone_id: str) -> None:
+    await db.execute("DELETE FROM diagonalley.zones WHERE id = ?", (zone_id,))
+
+
+###Stalls
+
+
+async def create_diagonalley_stall(
+    *,
+    wallet: str,
+    name: str,
+    publickey: str,
+    privatekey: str,
+    relays: str,
+    shippingzones: str,
+) -> Stalls:
+
+    returning = "" if db.type == SQLITE else "RETURNING ID"
+    method = db.execute if db.type == SQLITE else db.fetchone
+
+    stall_id = urlsafe_short_hash()
+    result = await (method)(
+        f"""
+        INSERT INTO diagonalley.stalls (
+            id,
+            wallet,
+            name,
+            publickey,
+            privatekey,
+            relays,
+            shippingzones
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        {returning}
+        """,
+        (stall_id, wallet, name, publickey, privatekey, relays, shippingzones),
+    )
+
+    stall = await get_diagonalley_stall(stall_id)
+    assert stall, "Newly created stall couldn't be retrieved"
+    return stall
+
+
+async def update_diagonalley_stall(stall_id: str, **kwargs) -> Optional[Stalls]:
+    q = ", ".join([f"{field[0]} = ?" for field in kwargs.items()])
+    await db.execute(
+        f"UPDATE diagonalley.stalls SET {q} WHERE id = ?",
+        (*kwargs.values(), stall_id),
+    )
+    row = await db.fetchone(
+        "SELECT * FROM diagonalley.stalls WHERE id = ?", (stall_id,)
+    )
+    return Stalls.from_row(row) if row else None
+
+
+async def get_diagonalley_stall(stall_id: str) -> Optional[Stalls]:
+    roww = await db.fetchone(
+        "SELECT * FROM diagonalley.stalls WHERE id = ?", (stall_id,)
+    )
+
+    try:
+        x = httpx.get(roww["stalladdress"] + "/" + roww["ratingkey"])
+        if x.status_code == 200:
+            await db.execute(
+                "UPDATE diagonalley.stalls SET online = ? WHERE id = ?",
+                (
+                    True,
+                    stall_id,
+                ),
+            )
+        else:
+            await db.execute(
+                "UPDATE diagonalley.stalls SET online = ? WHERE id = ?",
+                (
+                    False,
+                    stall_id,
+                ),
+            )
+    except:
+        print("An exception occurred")
+
+    # with open_ext_db("diagonalley") as db:
+    row = await db.fetchone(
+        "SELECT * FROM diagonalley.stalls WHERE id = ?", (stall_id,)
+    )
+    return Stalls.from_row(row) if row else None
+
+
+async def get_diagonalley_stalls(wallet_ids: Union[str, List[str]]) -> List[Stalls]:
+    if isinstance(wallet_ids, str):
+        wallet_ids = [wallet_ids]
+
+    q = ",".join(["?"] * len(wallet_ids))
+    rows = await db.fetchall(
+        f"SELECT * FROM diagonalley.stalls WHERE wallet IN ({q})", (*wallet_ids,)
+    )
+
+    for r in rows:
+        try:
+            x = httpx.get(r["stalladdress"] + "/" + r["ratingkey"])
+            if x.status_code == 200:
+                await db.execute(
+                    "UPDATE diagonalley.stalls SET online = ? WHERE id = ?",
+                    (
+                        True,
+                        r["id"],
+                    ),
+                )
+            else:
+                await db.execute(
+                    "UPDATE diagonalley.stalls SET online = ? WHERE id = ?",
+                    (
+                        False,
+                        r["id"],
+                    ),
+                )
+        except:
+            print("An exception occurred")
+    q = ",".join(["?"] * len(wallet_ids))
+    rows = await db.fetchall(
+        f"SELECT * FROM diagonalley.stalls WHERE wallet IN ({q})", (*wallet_ids,)
+    )
+    return [Stalls.from_row(row) for row in rows]
+
+
+async def delete_diagonalley_stall(stall_id: str) -> None:
+    await db.execute("DELETE FROM diagonalley.stalls WHERE id = ?", (stall_id,))
 
 
 ###Orders
 
 
-async def create_diagonalleys_order(
+async def create_diagonalley_order(
     *,
     productid: str,
     wallet: str,
@@ -284,17 +390,19 @@ async def create_diagonalleys_order(
     else:
         order_id = result[0]
 
-    link = await get_diagonalleys_order(order_id)
+    link = await get_diagonalley_order(order_id)
     assert link, "Newly created link couldn't be retrieved"
     return link
 
 
-async def get_diagonalleys_order(order_id: str) -> Optional[Orders]:
-    row = await db.fetchone("SELECT * FROM diagonalley.orders WHERE id = ?", (order_id,))
+async def get_diagonalley_order(order_id: str) -> Optional[Orders]:
+    row = await db.fetchone(
+        "SELECT * FROM diagonalley.orders WHERE id = ?", (order_id,)
+    )
     return Orders.from_row(row) if row else None
 
 
-async def get_diagonalleys_orders(wallet_ids: Union[str, List[str]]) -> List[Orders]:
+async def get_diagonalley_orders(wallet_ids: Union[str, List[str]]) -> List[Orders]:
     if isinstance(wallet_ids, str):
         wallet_ids = [wallet_ids]
 
@@ -306,5 +414,5 @@ async def get_diagonalleys_orders(wallet_ids: Union[str, List[str]]) -> List[Ord
     return [Orders.from_row(row) for row in rows]
 
 
-async def delete_diagonalleys_order(order_id: str) -> None:
+async def delete_diagonalley_order(order_id: str) -> None:
     await db.execute("DELETE FROM diagonalley.orders WHERE id = ?", (order_id,))

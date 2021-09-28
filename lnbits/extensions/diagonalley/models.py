@@ -7,28 +7,23 @@ from lnbits.lnurl import encode as lnurl_encode  # type: ignore
 from lnurl.types import LnurlPayMetadata  # type: ignore
 
 
-class Indexers(NamedTuple):
+class Stalls(NamedTuple):
     id: str
     wallet: str
-    shopname: str
-    indexeraddress: str
-    online: bool
-    rating: str
-    shippingzone1: str
-    shippingzone2: str
-    zone1cost: int
-    zone2cost: int
-    email: str
+    name: str
+    publickey: str
+    privatekey: str
+    relays: str
 
     @classmethod
-    def from_row(cls, row: Row) -> "Indexers":
+    def from_row(cls, row: Row) -> "Stalls":
         data = dict(row)
         return cls(**data)
 
 
 class Products(NamedTuple):
     id: str
-    wallet: str
+    stall: str
     product: str
     categories: str
     description: str
@@ -42,10 +37,21 @@ class Products(NamedTuple):
         return cls(**data)
 
 
+class Zones(NamedTuple):
+    id: str
+    cost: str
+    countries: str
+
+    @classmethod
+    def from_row(cls, row: Row) -> "Products":
+        data = dict(row)
+        return cls(**data)
+
+
 class Orders(NamedTuple):
     id: str
     productid: str
-    wallet: str
+    stall: str
     product: str
     quantity: int
     shippingzone: int
@@ -59,4 +65,3 @@ class Orders(NamedTuple):
     def from_row(cls, row: Row) -> "Orders":
         data = dict(row)
         return cls(**data)
-
