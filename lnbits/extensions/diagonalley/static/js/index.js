@@ -3,16 +3,6 @@
 Vue.component(VueQrcode.name, VueQrcode)
 
 const pica = window.pica()
-var mapDiagonAlley = function (obj) {
-  obj.date = Quasar.utils.date.formatDate(
-    new Date(obj.time * 1000),
-    'YYYY-MM-DD HH:mm'
-  )
-  obj.fsat = new Intl.NumberFormat(LOCALE).format(obj.amount)
-  obj.wall = ['/diagonalley/', obj.id].join('')
-  obj._data = _.clone(obj)
-  return obj
-}
 
 new Vue({
   el: '#vue',
@@ -269,7 +259,8 @@ new Vue({
         })
     },
     openStallUpdateDialog: function (linkId) {
-      var link = _.findWhere(this.stalls, {id: linkId})
+      var self = this
+      var link = _.findWhere(self.stalls, {id: linkId})
 
       this.stallDialog.data = _.clone(link._data)
       this.stallDialog.show = true
@@ -298,8 +289,8 @@ new Vue({
         .request(
           'PUT',
           '/diagonalley/api/v1/stalls' + data.id,
-          _.findWhere(this.g.user.wallets, {
-            id: this.stallDialog.data.wallet
+          _.findWhere(self.g.user.wallets, {
+            id: self.stallDialog.data.wallet
           }).inkey,
           _.pick(data, 'name', 'wallet', 'publickey', 'privatekey')
         )
@@ -322,8 +313,8 @@ new Vue({
         .request(
           'POST',
           '/diagonalley/api/v1/stalls',
-          _.findWhere(this.g.user.wallets, {
-            id: this.stallDialog.data.wallet
+          _.findWhere(self.g.user.wallets, {
+            id: self.stallDialog.data.wallet
           }).inkey,
           data
         )
@@ -339,7 +330,7 @@ new Vue({
     },
     deleteStall: function (stallId) {
       var self = this
-      var stall = _.findWhere(this.stalls, {id: stallId})
+      var stall = _.findWhere(self.stalls, {id: stallId})
 
       LNbits.utils
         .confirmDialog('Are you sure you want to delete this Stall link?')
@@ -382,10 +373,11 @@ new Vue({
         })
     },
     openProductUpdateDialog: function (linkId) {
-      var link = _.findWhere(this.products, {id: linkId})
+      var self = this
+      var link = _.findWhere(self.products, {id: linkId})
 
-      this.productDialog.data = _.clone(link._data)
-      this.productDialog.show = true
+      self.productDialog.data = _.clone(link._data)
+      self.productDialog.show = true
     },
     sendProductFormData: function () {
       if (this.productDialog.data.id) {
@@ -436,8 +428,8 @@ new Vue({
         .request(
           'PUT',
           '/diagonalley/api/v1/products' + data.id,
-          _.findWhere(this.g.user.wallets, {
-            id: this.productDialog.data.wallet
+          _.findWhere(self.g.user.wallets, {
+            id: self.productDialog.data.wallet
           }).inkey,
           _.pick(
             data,
@@ -468,8 +460,8 @@ new Vue({
         .request(
           'POST',
           '/diagonalley/api/v1/products',
-          _.findWhere(this.g.user.wallets, {
-            id: this.productDialog.data.wallet
+          _.findWhere(self.g.user.wallets, {
+            id: self.productDialog.data.wallet
           }).inkey,
           data
         )
@@ -527,7 +519,8 @@ new Vue({
         })
     },
     openZoneUpdateDialog: function (linkId) {
-      var link = _.findWhere(this.zones, {id: linkId})
+      var self = this
+      var link = _.findWhere(self.zones, {id: linkId})
 
       this.zoneDialog.data = _.clone(link._data)
       this.zoneDialog.show = true
@@ -553,8 +546,8 @@ new Vue({
         .request(
           'PUT',
           '/diagonalley/api/v1/zones' + data.id,
-          _.findWhere(this.g.user.wallets, {
-            id: this.zoneDialog.data.wallet
+          _.findWhere(self.g.user.wallets, {
+            id: self.zoneDialog.data.wallet
           }).inkey,
           _.pick(data, 'countries', 'cost')
         )
@@ -577,8 +570,8 @@ new Vue({
         .request(
           'POST',
           '/diagonalley/api/v1/zones',
-          _.findWhere(this.g.user.wallets, {
-            id: this.zoneDialog.data.wallet
+          _.findWhere(self.g.user.wallets, {
+            id: self.zoneDialog.data.wallet
           }).inkey,
           data
         )
@@ -594,7 +587,7 @@ new Vue({
     },
     deleteZone: function (zoneId) {
       var self = this
-      var zone = _.findWhere(this.zones, {id: zoneId})
+      var zone = _.findWhere(self.zones, {id: zoneId})
 
       LNbits.utils
         .confirmDialog('Are you sure you want to delete this Zone link?')
@@ -649,7 +642,7 @@ new Vue({
         .request(
           'POST',
           '/diagonalley/api/v1/orders',
-          _.findWhere(this.g.user.wallets, {id: this.orderDialog.data.wallet})
+          _.findWhere(self.g.user.wallets, {id: self.orderDialog.data.wallet})
             .inkey,
           data
         )
@@ -664,7 +657,7 @@ new Vue({
     },
     deleteOrder: function (orderId) {
       var self = this
-      var order = _.findWhere(this.orders, {id: orderId})
+      var order = _.findWhere(self.orders, {id: orderId})
 
       LNbits.utils
         .confirmDialog('Are you sure you want to delete this order link?')

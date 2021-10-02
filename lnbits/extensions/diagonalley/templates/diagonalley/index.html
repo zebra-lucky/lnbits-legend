@@ -1,6 +1,165 @@
 {% extends "base.html" %} {% from "macros.jinja" import window_vars with context
 %} {% block page %}
 <div class="row q-col-gutter-md">
+  <q-dialog v-model="productDialog.show" position="top">
+    <q-card class="q-pa-lg q-pt-xl" style="width: 500px">
+      <q-form @submit="sendProductFormData" class="q-gutter-md">
+        <q-select
+          filled
+          dense
+          emit-value
+          v-model="productDialog.data.stall"
+          :options="stalls"
+          label="Stall"
+        >
+        </q-select>
+        <q-input
+          filled
+          dense
+          v-model.trim="productDialog.data.product"
+          label="Product"
+        ></q-input>
+
+        <q-input
+          filled
+          dense
+          v-model.trim="productDialog.data.description"
+          label="Description"
+        ></q-input>
+        <div class="row">
+          <div class="col-5">
+            <q-select
+              filled
+              dense
+              v-model.trim="productDialog.data.categories"
+              multiple
+              :options="categories"
+              label="Categories"
+              class="q-pr-sm"
+            ></q-select>
+          </div>
+          <div class="col-7">
+            <q-input
+              filled
+              dense
+              v-model.trim="productDialog.categoriesextra"
+              placeholder="crafts,robots,etc (seperate by comma)"
+              label="Other categories *optional"
+            ></q-input>
+          </div>
+        </div>
+
+        <q-file
+          class="q-pr-md"
+          filled
+          dense
+          capture="environment"
+          accept="image/jpeg, image/png"
+          :max-file-size="3*1024**2"
+          label="Small image (optional)"
+          clearable
+          @input="imageAdded"
+          @clear="imageCleared"
+        >
+          <template v-if="productDialog.data.image" v-slot:before>
+            <img style="height: 1em" :src="productDialog.data.image" />
+          </template>
+          <template v-if="productDialog.data.image" v-slot:append>
+            <q-icon
+              name="cancel"
+              @click.stop.prevent="imageCleared"
+              class="cursor-pointer"
+            />
+          </template>
+        </q-file>
+        <q-input
+          filled
+          dense
+          v-model.number="productDialog.data.price"
+          type="number"
+          label="Price"
+        ></q-input>
+        <q-input
+          filled
+          dense
+          v-model.number="productDialog.data.quantity"
+          type="number"
+          label="Quantity"
+        ></q-input>
+
+        <div class="row q-mt-lg">
+          <q-btn
+            v-if="productDialog.data.id"
+            unelevated
+            color="primary"
+            type="submit"
+            >Update Product</q-btn
+          >
+
+          <q-btn
+            v-else
+            unelevated
+            color="primary"
+            :disable="productDialog.data.image == null
+              || productDialog.data.product == null
+              || productDialog.data.description == null
+              || productDialog.data.quantity == null"
+            type="submit"
+            >Create Product</q-btn
+          >
+
+          <q-btn v-close-popup flat color="grey" class="q-ml-auto"
+            >Cancel</q-btn
+          >
+        </div>
+      </q-form>
+    </q-card>
+  </q-dialog>
+
+  <q-dialog v-model="zoneDialog.show" position="top">
+    <q-card class="q-pa-lg q-pt-xl" style="width: 500px">
+      <q-form @submit="sendZoneFormData" class="q-gutter-md">
+        <q-select
+          filled
+          dense
+          multiple
+          :options="shippingZoneOptions"
+          label="Countries"
+          v-model.trim="zoneDialog.data.countries"
+        ></q-select>
+        <q-input
+          filled
+          dense
+          type="number"
+          v-model.trim="zoneDialog.data.cost"
+          label="Cost (sats)"
+        ></q-input>
+        <div class="row q-mt-lg">
+          <q-btn
+            v-if="zoneDialog.data.id"
+            unelevated
+            color="primary"
+            type="submit"
+            >Update Relay</q-btn
+          >
+          <q-btn
+            v-else
+            unelevated
+            color="primary"
+            :disable="zoneDialog.data.countries == null
+              || zoneDialog.data.cost == null"
+            type="submit"
+            >Create Shipping Zone</q-btn
+          >
+
+          <q-btn v-close-popup flat color="grey" class="q-ml-auto"
+            >Cancel</q-btn
+          >
+        </div>
+      </q-form>
+    </q-card>
+  </q-dialog>
+
   <div class="col-12 col-md-8 col-lg-7 q-gutter-y-md">
     <q-card>
       <q-card-section>
@@ -283,7 +442,9 @@
   <div class="col-12 col-md-4 col-lg-5 q-gutter-y-md">
     <q-card>
       <q-card-section>
-        <h6 class="text-subtitle1 q-my-none">LNbits Diagon Alley Extension, powered by Nostr</h6>
+        <h6 class="text-subtitle1 q-my-none">
+          LNbits Diagon Alley Extension, powered by Nostr
+        </h6>
       </q-card-section>
       <q-card-section class="q-pa-none">
         <q-separator></q-separator>
@@ -306,9 +467,6 @@
               >OrderID:NIUHB7897<br/>79867KJGJHGVFYFV....</q-btn
             >
           </div>
-         
-            
-         
           <div class="col-8">
             <div style="height: 350px">
             <q-chat-message
@@ -327,252 +485,6 @@
       </q-card-section>
     </q-card>
   </div>
-
-  <q-dialog v-model="stallDialog.show" position="top">
-    <q-card class="q-pa-lg q-pt-xl" style="width: 500px">
-      <q-form @submit="sendStallFormData" class="q-gutter-md">
-        <q-input
-          filled
-          dense
-          v-model.trim="stallDialog.data.name"
-          label="Name"
-        ></q-input>
-        <q-select
-          filled
-          dense
-          emit-value
-          v-model="stallDialog.data.wallet"
-          :options="g.user.walletOptions"
-          label="Wallet *"
-        >
-        </q-select>
-        <div class="row">
-          <div class="col-5">
-            <q-btn unelevated color="primary">Generate keys</q-btn>
-          </div>
-          <div class="col-5">
-            <q-btn unelevated color="primary">Restore keys</q-btn>
-          </div>
-        </div>
-        <q-input
-          v-if="stallDialog.restorekeys"
-          filled
-          dense
-          v-model.trim="stallDialog.data.publickey"
-          label="Public Key"
-        ></q-input>
-        <q-input
-          v-if="stallDialog.restorekeys"
-          filled
-          dense
-          v-model.trim="stallDialog.data.privatekey"
-          label="Private Key"
-        ></q-input>
-        <q-select
-          :options="relayOptions"
-          filled
-          dense
-          multiple
-          v-model.trim="stallDialog.data.relays"
-          label="Relays"
-        ></q-select>
-        <q-input
-          filled
-          dense
-          v-model.trim="stallDialog.data.name"
-          label="Custom relays (seperate by comma)"
-        ></q-input>
-        <q-select
-          :options="shippingZoneOptions"
-          filled
-          dense
-          multiple
-          v-model.trim="stallDialog.data.shippingzones"
-          label="Shipping Zones"
-        ></q-select>
-        <div class="row q-mt-lg">
-          <q-btn
-            v-if="stallDialog.data.id"
-            unelevated
-            color="primary"
-            type="submit"
-            >Update Stall</q-btn
-          >
-          <q-btn
-            v-else
-            unelevated
-            color="primary"
-            :disable="stallDialog.data.countries == null
-              || stallDialog.data.cost == null"
-            type="submit"
-            >Create Stall</q-btn
-          >
-          <q-btn v-close-popup flat color="grey" class="q-ml-auto"
-            >Cancel</q-btn
-          >
-        </div>
-      </q-form>
-    </q-card>
-  </q-dialog>
-
-  <q-dialog v-model="productDialog.show" position="top">
-    <q-card class="q-pa-lg q-pt-xl" style="width: 500px">
-      <q-form @submit="sendProductFormData" class="q-gutter-md">
-        <q-select
-          filled
-          dense
-          emit-value
-          v-model="productDialog.data.stall"
-          :options="stalls"
-          label="Stall"
-        >
-        </q-select>
-        <q-input
-          filled
-          dense
-          v-model.trim="productDialog.data.product"
-          label="Product"
-        ></q-input>
-
-        <q-input
-          filled
-          dense
-          v-model.trim="productDialog.data.description"
-          label="Description"
-        ></q-input>
-        <div class="row">
-          <div class="col-5">
-            <q-select
-              filled
-              dense
-              v-model.trim="productDialog.data.categories"
-              multiple
-              :options="categories"
-              label="Categories"
-              class="q-pr-sm"
-            ></q-select>
-          </div>
-          <div class="col-7">
-            <q-input
-              filled
-              dense
-              v-model.trim="productDialog.categoriesextra"
-              placeholder="crafts,robots,etc (seperate by comma)"
-              label="Other categories *optional"
-            ></q-input>
-          </div>
-        </div>
-
-        <q-file
-          class="q-pr-md"
-          filled
-          dense
-          capture="environment"
-          accept="image/jpeg, image/png"
-          :max-file-size="3*1024**2"
-          label="Small image (optional)"
-          clearable
-          @input="imageAdded"
-          @clear="imageCleared"
-        >
-          <template v-if="productDialog.data.image" v-slot:before>
-            <img style="height: 1em" :src="productDialog.data.image" />
-          </template>
-          <template v-if="productDialog.data.image" v-slot:append>
-            <q-icon
-              name="cancel"
-              @click.stop.prevent="imageCleared"
-              class="cursor-pointer"
-            />
-          </template>
-        </q-file>
-        <q-input
-          filled
-          dense
-          v-model.number="productDialog.data.price"
-          type="number"
-          label="Price"
-        ></q-input>
-        <q-input
-          filled
-          dense
-          v-model.number="productDialog.data.quantity"
-          type="number"
-          label="Quantity"
-        ></q-input>
-
-        <div class="row q-mt-lg">
-          <q-btn
-            v-if="productDialog.data.id"
-            unelevated
-            color="primary"
-            type="submit"
-            >Update Product</q-btn
-          >
-
-          <q-btn
-            v-else
-            unelevated
-            color="primary"
-            :disable="productDialog.data.image == null
-              || productDialog.data.product == null
-              || productDialog.data.description == null
-              || productDialog.data.quantity == null"
-            type="submit"
-            >Create Product</q-btn
-          >
-
-          <q-btn v-close-popup flat color="grey" class="q-ml-auto"
-            >Cancel</q-btn
-          >
-        </div>
-      </q-form>
-    </q-card>
-  </q-dialog>
-
-  <q-dialog v-model="zoneDialog.show" position="top">
-    <q-card class="q-pa-lg q-pt-xl" style="width: 500px">
-      <q-form @submit="sendZoneFormData" class="q-gutter-md">
-        <q-select
-          filled
-          dense
-          multiple
-          :options="shippingZoneOptions"
-          label="Countries"
-          v-model.trim="zoneDialog.data.countries"
-        ></q-select>
-        <q-input
-          filled
-          dense
-          type="number"
-          v-model.trim="zoneDialog.data.cost"
-          label="Cost (sats)"
-        ></q-input>
-        <div class="row q-mt-lg">
-          <q-btn
-            v-if="zoneDialog.data.id"
-            unelevated
-            color="primary"
-            type="submit"
-            >Update Relay</q-btn
-          >
-          <q-btn
-            v-else
-            unelevated
-            color="primary"
-            :disable="zoneDialog.data.countries == null
-              || zoneDialog.data.cost == null"
-            type="submit"
-            >Create Shipping Zone</q-btn
-          >
-
-          <q-btn v-close-popup flat color="grey" class="q-ml-auto"
-            >Cancel</q-btn
-          >
-        </div>
-      </q-form>
-    </q-card>
-  </q-dialog>
 </div>
 {% endblock %} {% block scripts %} {{ window_vars(user) }}
 <script src="https://cdn.jsdelivr.net/npm/pica@6.1.1/dist/pica.min.js"></script>
