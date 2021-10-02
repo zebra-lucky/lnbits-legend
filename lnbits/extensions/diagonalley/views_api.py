@@ -43,7 +43,7 @@ from .models import Products, Orders, Stalls
 async def api_diagonalley_products():
     wallet_ids = [g.wallet.id]
 
-    if "all_wallets" in request.args:
+    if "all_stalls" in request.args:
         wallet_ids = (await get_user(g.wallet.user)).wallet_ids
 
     return (
@@ -159,7 +159,7 @@ async def api_diagonalley_zone_create(zone_id=None):
 
         zone = await update_diagonalley_zone(zone_id, **g.data)
     else:
-        zone = await create_diagonalley_zone(wallet_id=g.wallet.id, **g.data)
+        zone = await create_diagonalley_zone(wallet=g.wallet.id, **g.data)
 
     return (
         jsonify({**zone._asdict()}),

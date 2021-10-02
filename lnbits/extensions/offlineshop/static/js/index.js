@@ -218,3 +218,14 @@ new Vue({
       })
   }
 })
+
+var mapDiagonAlley = function (obj) {
+  obj.date = Quasar.utils.date.formatDate(
+    new Date(obj.time * 1000),
+    'YYYY-MM-DD HH:mm'
+  )
+  obj.fsat = new Intl.NumberFormat(LOCALE).format(obj.amount)
+  obj.wall = ['/diagonalley/', obj.id].join('')
+  obj._data = _.clone(obj)
+  return obj
+}
