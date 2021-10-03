@@ -160,6 +160,143 @@
     </q-card>
   </q-dialog>
 
+
+  <q-dialog v-model="shopDialog.show" position="top">
+    <q-card class="q-pa-lg q-pt-xl" style="width: 500px">
+      <q-form @submit="sendShopFormData" class="q-gutter-md">
+        <q-toggle
+        label="Activate shop"
+        color="primary"
+        v-model="shopDialog.data.activate"
+      ></q-toggle>
+        <q-select
+          filled
+          dense
+          multiple
+          :options="stalls"
+          label="Stalls"
+          v-model.trim="shopDialog.data.stalls"
+        ></q-select>
+        <div class="row q-mt-lg">
+          <q-btn
+            v-if="shopDialog.data.id"
+            unelevated
+            color="primary"
+            type="submit"
+            >Update Relay</q-btn
+          >
+          <q-btn
+            v-else
+            unelevated
+            color="primary"
+            :disable="shopDialog.data.activate == null
+              || shopDialog.data.stalls == null"
+            type="submit"
+            >Launch</q-btn
+          >
+
+          <q-btn v-close-popup flat color="grey" class="q-ml-auto"
+            >Cancel</q-btn
+          >
+        </div>
+      </q-form>
+    </q-card>
+  </q-dialog>
+
+  <q-dialog v-model="stallDialog.show" position="top">
+    <q-card class="q-pa-lg q-pt-xl" style="width: 500px">
+      <q-form @submit="sendStallFormData" class="q-gutter-md">
+        <q-input
+          filled
+          dense
+          v-model.trim="stallDialog.data.name"
+          label="Name"
+        ></q-input>
+        <q-select
+          filled
+          dense
+          emit-value
+          v-model="stallDialog.data.wallet"
+          :options="g.user.walletOptions"
+          label="Wallet *"
+        >
+        </q-select>
+        <div class="row">
+          <div class="col-5">
+            <q-btn unelevated color="primary">Generate keys</q-btn>
+          </div>
+          <div class="col-5">
+            <q-btn unelevated color="primary">Restore keys</q-btn>
+          </div>
+        </div>
+        <q-input
+          v-if="stallDialog.restorekeys"
+          filled
+          dense
+          v-model.trim="stallDialog.data.publickey"
+          label="Public Key"
+        ></q-input>
+        <q-input
+          v-if="stallDialog.restorekeys"
+          filled
+          dense
+          v-model.trim="stallDialog.data.privatekey"
+          label="Private Key"
+        ></q-input>
+        <q-select
+          :options="shippingZoneOptions"
+          filled
+          dense
+          multiple
+          v-model.trim="stallDialog.data.shippingzones"
+          label="Shipping Zones"
+        ></q-select>
+        <q-select
+          :options="relayOptions"
+          filled
+          dense
+          multiple
+          v-model.trim="stallDialog.data.relays"
+          label="Relays"
+        ></q-select>
+        <q-input
+          filled
+          dense
+          v-model.trim="stallDialog.data.name"
+          label="Custom relays (seperate by comma)"
+        ></q-input>
+        
+        <q-input
+          filled
+          dense
+          v-model.trim="stallDialog.data.nostrShops"
+          label="Stall public keys (seperate by comma)"
+        ></q-input>
+        <div class="row q-mt-lg">
+          <q-btn
+            v-if="stallDialog.data.id"
+            unelevated
+            color="primary"
+            type="submit"
+            >Update Stall</q-btn
+          >
+          <q-btn
+            v-else
+            unelevated
+            color="primary"
+            :disable="stallDialog.data.countries == null
+              || stallDialog.data.cost == null"
+            type="submit"
+            >Create Stall</q-btn
+          >
+          <q-btn v-close-popup flat color="grey" class="q-ml-auto"
+            >Cancel</q-btn
+          >
+        </div>
+      </q-form>
+    </q-card>
+  </q-dialog>
+
   <div class="col-12 col-md-8 col-lg-7 q-gutter-y-md">
     <q-card>
       <q-card-section>
@@ -172,6 +309,10 @@
         <q-btn unelevated color="primary" @click="stallDialog.show = true"
           >+ Stall
           <q-tooltip> Create a stall to list products on </q-tooltip></q-btn
+        >
+        <q-btn unelevated color="primary" @click="shopDialog.show = true"
+          >Launch frontend shop (not Nostr)
+          <q-tooltip> Makes a simple frontend shop for your stalls</q-tooltip></q-btn
         >
       </q-card-section>
     </q-card>
@@ -460,11 +601,11 @@
 
         <div class="row q-pa-md">
           <div class="col-4">
-            <q-btn outline color="primary" size="md" style="height: 90px"
-              >OrderID:87h87hhh<br/>KJBIBYBUYBUF90898....</q-btn
+            <q-btn outline color="primary" size="md" style="height: 90px; width:90%"
+              >OrderID:87h87h<br/>KJBIBYBUYBUF90898....</q-btn
             >
-            <q-btn outline color="primary" size="md" style="height: 90px"
-              >OrderID:NIUHB7897<br/>79867KJGJHGVFYFV....</q-btn
+            <q-btn outline color="primary" size="md" style="height: 90px; width:90%"
+              >OrderID:NIUHB7<br/>79867KJGJHGVFYFV....</q-btn
             >
           </div>
           <div class="col-8">

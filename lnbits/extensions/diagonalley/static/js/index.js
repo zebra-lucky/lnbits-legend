@@ -218,6 +218,10 @@ new Vue({
         show: false,
         data: {}
       },
+      shopDialog: {
+        show: false,
+        data: {activate: false}
+      },
       orderDialog: {
         show: false,
         data: {}
