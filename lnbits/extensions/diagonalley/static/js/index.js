@@ -700,9 +700,9 @@ new Vue({
   created: function () {
     if (this.g.user.wallets.length) {
       this.getStalls()
-      // this.getProducts()
-      // this.getZones()
-      // this.getOrders()
+      this.getProducts()
+      this.getZones()
+      this.getOrders()
     }
   }
 })
