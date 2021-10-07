@@ -94,7 +94,7 @@ async def get_diagonalley_products(wallet_ids: Union[str, List[str]]) -> List[Pr
     q = ",".join(["?"] * len(wallet_ids))
     rows = await db.fetchall(
         f"""
-        SELECT * FROM diagonalley.products WHERE wallet IN ({q})
+        SELECT * FROM diagonalley.products WHERE stall IN ({q})
         """,
         (*wallet_ids,),
     )
@@ -119,6 +119,7 @@ async def create_diagonalley_zone(
     method = db.execute if db.type == SQLITE else db.fetchone
 
     zone_id = urlsafe_short_hash()
+    print(zone_id)
     result = await (method)(
         f"""
         INSERT INTO diagonalley.zones (
@@ -181,6 +182,7 @@ async def get_diagonalley_zone(zone_id: str) -> Optional[Zones]:
 async def get_diagonalley_zones(wallet_ids: Union[str, List[str]]) -> List[Zones]:
     if isinstance(wallet_ids, str):
         wallet_ids = [wallet_ids]
+        print(wallet_ids)
 
     q = ",".join(["?"] * len(wallet_ids))
     rows = await db.fetchall(

@@ -42,7 +42,6 @@ from .models import Products, Orders, Stalls
 @api_check_wallet_key(key_type="invoice")
 async def api_diagonalley_products():
     wallet_ids = [g.wallet.id]
-    print(wallet_ids)
 
     if "all_stalls" in request.args:
         wallet_ids = (await get_user(g.wallet.user)).wallet_ids
@@ -142,8 +141,7 @@ async def api_diagonalley_zones():
     }
 )
 async def api_diagonalley_zone_create(zone_id=None):
-    print("vsdvd")
-
+    print("cunt")
     if zone_id:
         zone = await get_diagonalley_zone(zone_id)
 

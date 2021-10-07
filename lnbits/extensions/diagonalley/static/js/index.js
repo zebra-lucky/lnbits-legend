@@ -570,6 +570,7 @@ new Vue({
     },
     createZone: function (data) {
       var self = this
+      console.log('cuntywoo')
       LNbits.api
         .request(
           'POST',
@@ -614,6 +615,118 @@ new Vue({
     },
     exportZonesCSV: function () {
       LNbits.utils.exportCSV(this.zonesTable.columns, this.zones)
+    },
+    ////////////////////////////////////////
+    //////////////////SHOP//////////////////
+    ////////////////////////////////////////
+    getShops: function () {
+      var self = this
+
+      LNbits.api
+        .request(
+          'GET',
+          '/diagonalley/api/v1/shops?all_wallets',
+          this.g.user.wallets[0].inkey
+        )
+        .then(function (response) {
+          self.shops = response.data.map(function (obj) {
+            return mapDiagonAlley(obj)
+          })
+        })
+    },
+    openShopUpdateDialog: function (linkId) {
+      var self = this
+      var link = _.findWhere(self.shops, {id: linkId})
+
+      this.shopDialog.data = _.clone(link._data)
+      this.shopDialog.show = true
+    },
+    sendShopFormData: function () {
+      if (this.shopDialog.data.id) {
+      } else {
+        var data = {
+          countries: this.shopDialog.data.countries,
+          cost: this.shopDialog.data.cost
+        }
+      }
+
+      if (this.shopDialog.data.id) {
+        this.updateZone(this.shopDialog.data)
+      } else {
+        this.createZone(data)
+      }
+    },
+    updateShop: function (data) {
+      var self = this
+      LNbits.api
+        .request(
+          'PUT',
+          '/diagonalley/api/v1/shops' + data.id,
+          _.findWhere(self.g.user.wallets, {
+            id: self.shopDialog.data.wallet
+          }).inkey,
+          _.pick(data, 'countries', 'cost')
+        )
+        .then(function (response) {
+          self.shops = _.reject(self.shops, function (obj) {
+            return obj.id == data.id
+          })
+          self.shops.push(mapDiagonAlley(response.data))
+          self.shopDialog.show = false
+          self.shopDialog.data = {}
+          data = {}
+        })
+        .catch(function (error) {
+          LNbits.utils.notifyApiError(error)
+        })
+    },
+    createShop: function (data) {
+      var self = this
+      console.log('cuntywoo')
+      LNbits.api
+        .request(
+          'POST',
+          '/diagonalley/api/v1/shops',
+          _.findWhere(self.g.user.wallets, {
+            id: self.shopDialog.data.wallet
+          }).inkey,
+          data
+        )
+        .then(function (response) {
+          self.shops.push(mapDiagonAlley(response.data))
+          self.shopDialog.show = false
+          self.shopDialog.data = {}
+          data = {}
+        })
+        .catch(function (error) {
+          LNbits.utils.notifyApiError(error)
+        })
+    },
+    deleteShop: function (shopId) {
+      var self = this
+      var shop = _.findWhere(self.shops, {id: shopId})
+
+      LNbits.utils
+        .confirmDialog('Are you sure you want to delete this Shop link?')
+        .onOk(function () {
+          LNbits.api
+            .request(
+              'DELETE',
+              '/diagonalley/api/v1/shops/' + shopId,
+              _.findWhere(self.g.user.wallets, {id: shop.wallet}).inkey
+            )
+            .then(function (response) {
+              self.shops = _.reject(self.shops, function (obj) {
+                return obj.id == shopId
+              })
+            })
+            .catch(function (error) {
+              LNbits.utils.notifyApiError(error)
+            })
+        })
+    },
+    exportShopsCSV: function () {
+      LNbits.utils.exportCSV(this.shopsTable.columns, this.shops)
     },
     ////////////////////////////////////////
     ////////////////ORDERS//////////////////

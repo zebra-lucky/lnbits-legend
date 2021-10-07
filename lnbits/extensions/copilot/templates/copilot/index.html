@@ -533,7 +533,7 @@
             this.g.user.wallets[0].inkey
           )
           .then(function (response) {
-            if(response.data){
+            if (response.data) {
               self.CopilotLinks = response.data.map(mapCopilot)
             }
           })
@@ -572,6 +572,7 @@
       deleteCopilotLink: function (copilotId) {
         var self = this
         var link = _.findWhere(this.CopilotLinks, {id: copilotId})
+
         LNbits.utils
           .confirmDialog('Are you sure you want to delete this pay link?')
           .onOk(function () {
@@ -634,14 +635,14 @@
             LNbits.utils.notifyApiError(error)
           })
       },
-      clearFormDialogCopilot(){
+      clearFormDialogCopilot() {
         this.formDialogCopilot.data = {
-            lnurl_toggle: false,
-            show_message: false,
-            show_ack: false,
-            show_price: 'None',
-            title: ''
-          }
+          lnurl_toggle: false,
+          show_message: false,
+          show_ack: false,
+          show_price: 'None',
+          title: ''
+        }
       },
       exportcopilotCSV: function () {
         var self = this
