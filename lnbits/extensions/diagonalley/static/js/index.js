@@ -533,8 +533,8 @@ new Vue({
       if (this.zoneDialog.data.id) {
       } else {
         var data = {
-          countries: this.zoneDialog.data.countries,
-          cost: this.zoneDialog.data.cost
+          countries: toString(this.zoneDialog.data.countries),
+          cost: parseInt(this.zoneDialog.data.cost)
         }
       }
 
@@ -570,14 +570,13 @@ new Vue({
     },
     createZone: function (data) {
       var self = this
-      console.log('cuntywoo')
+      console.log(self.g.user.wallets[0])
+      console.log(data)
       LNbits.api
         .request(
           'POST',
           '/diagonalley/api/v1/zones',
-          _.findWhere(self.g.user.wallets, {
-            id: self.zoneDialog.data.wallet
-          }).inkey,
+          self.g.user.wallets[0].inkey,
           data
         )
         .then(function (response) {

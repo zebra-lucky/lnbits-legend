@@ -39,6 +39,7 @@ class Products(NamedTuple):
 
 class Zones(NamedTuple):
     id: str
+    wallet: str
     cost: str
     countries: str
 

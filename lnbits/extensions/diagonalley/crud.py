@@ -110,16 +110,15 @@ async def delete_diagonalley_product(product_id: str) -> None:
 
 async def create_diagonalley_zone(
     *,
-    wallet: str,
-    cost: str,
-    countries: str,
+    wallet: Optional[str] = None,
+    cost: Optional[int] = 0,
+    countries: Optional[str] = None,
 ) -> Zones:
 
     returning = "" if db.type == SQLITE else "RETURNING ID"
     method = db.execute if db.type == SQLITE else db.fetchone
 
     zone_id = urlsafe_short_hash()
-    print(zone_id)
     result = await (method)(
         f"""
         INSERT INTO diagonalley.zones (
@@ -151,30 +150,6 @@ async def update_diagonalley_zone(zone_id: str, **kwargs) -> Optional[Zones]:
 
 
 async def get_diagonalley_zone(zone_id: str) -> Optional[Zones]:
-    roww = await db.fetchone("SELECT * FROM diagonalley.zones WHERE id = ?", (zone_id,))
-
-    try:
-        x = httpx.get(roww["zoneaddress"] + "/" + roww["ratingkey"])
-        if x.status_code == 200:
-            await db.execute(
-                "UPDATE diagonalley.zones SET online = ? WHERE id = ?",
-                (
-                    True,
-                    zone_id,
-                ),
-            )
-        else:
-            await db.execute(
-                "UPDATE diagonalley.zones SET online = ? WHERE id = ?",
-                (
-                    False,
-                    zone_id,
-                ),
-            )
-    except:
-        print("An exception occurred")
-
-    # with open_ext_db("diagonalley") as db:
     row = await db.fetchone("SELECT * FROM diagonalley.zones WHERE id = ?", (zone_id,))
     return Zones.from_row(row) if row else None
 

@@ -141,7 +141,6 @@ async def api_diagonalley_zones():
     }
 )
 async def api_diagonalley_zone_create(zone_id=None):
-    print("cunt")
     if zone_id:
         zone = await get_diagonalley_zone(zone_id)
 
