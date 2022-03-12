@@ -30,6 +30,7 @@
               <q-th auto-width></q-th>
               <q-th auto-width>Name</q-th>
               <q-th auto-width>Description</q-th>
+              <q-th auto-width>Wallet</q-th>
               <q-th auto-width>Image</q-th>
               <q-th auto-width>Price</q-th>
               <q-th auto-width></q-th>
@@ -85,127 +86,6 @@
           </template>
         </q-table>
         {% endraw %}
-      </q-card-section>
-    </q-card>
-
-    <q-card class="q-pa-sm col-5">
-      <q-card-section class="q-pa-none text-center">
-        <div class="row">
-          <h5 class="text-subtitle1 q-my-none">Wallet Shop</h5>
-        </div>
-
-        <q-form class="q-gutter-md">
-          <q-select
-            filled
-            dense
-            :options="g.user.wallets"
-            :value="selectedWallet"
-            label="Using wallet:"
-            option-label="name"
-            @input="changedWallet"
-          >
-          </q-select>
-        </q-form>
-
-        <div v-if="printItems.length > 0" class="row q-gutter-sm q-my-md">
-          <q-btn
-            type="a"
-            outline
-            color="secondary"
-            :href="'print?items=' + printItems.map(({id}) => id).join(',')"
-            >Print QR Codes</q-btn
-          >
-        </div>
-      </q-card-section>
-    </q-card>
-
-    <q-card class="q-pa-sm col-5">
-      <q-tabs
-        v-model="confirmationMethod"
-        no-caps
-        class="bg-dark text-white shadow-2"
-      >
-        <q-tab name="wordlist" label="Wordlist"></q-tab>
-        <q-tab name="totp" label="TOTP (Google Authenticator)"></q-tab>
-        <q-tab name="none" label="Nothing"></q-tab>
-      </q-tabs>
-
-      <q-card-section class="q-py-sm text-center">
-        <q-form
-          v-if="confirmationMethod === 'wordlist'"
-          class="q-gutter-md q-y-md"
-          @submit="setMethod"
-        >
-          <div class="row">
-            <div class="col q-mx-lg">
-              <q-input
-                v-model="eightball.wordlist"
-                @input="wordlistTainted = true"
-                dense
-                filled
-                autogrow
-              />
-            </div>
-            <div
-              class="col q-mx-lg items-align flex items-center justify-center"
-            >
-              <q-btn
-                unelevated
-                color="primary"
-                type="submit"
-                :disabled="!wordlistTainted"
-              >
-                Update Wordlist
-              </q-btn>
-              <q-btn @click="loadShop" flat color="grey" class="q-ml-auto"
-                >Reset</q-btn
-              >
-            </div>
-          </div>
-        </q-form>
-
-        <div v-else-if="confirmationMethod === 'totp'">
-          <div class="row">
-            <div class="col q-mx-lg">
-              <q-responsive :ratio="1">
-                <qrcode
-                  :value="`otpauth://totp/eightball:${selectedWallet.name}?secret=${eightball.otp_key}`"
-                  :options="{width: 800}"
-                  class="rounded-borders"
-                ></qrcode>
-              </q-responsive>
-            </div>
-            <div
-              class="col q-mx-lg items-align flex items-center justify-center"
-            >
-              <q-btn
-                unelevated
-                color="primary"
-                :disabled="eightball.method === 'totp'"
-                @click="setMethod"
-              >
-                Set TOTP
-              </q-btn>
-            </div>
-          </div>
-        </div>
-
-        <div v-else-if="confirmationMethod === 'none'">
-          <p>
-            Setting this option disables the confirmation code message that
-            appears in the consumer wallet after a purchase is paid for. It's ok
-            if the consumer is to be trusted when they claim to have paid.
-          </p>
-
-          <q-btn
-            unelevated
-            color="primary"
-            :disabled="eightball.method === 'none'"
-            @click="setMethod"
-          >
-            Disable Confirmation Codes
-          </q-btn>
-        </div>
       </q-card-section>
     </q-card>
   </div>
@@ -305,6 +185,15 @@
             label="Unit"
             :options="itemDialog.units"
           ></q-select>
+          <div class="col q-mx-lg">
+            <q-input
+              v-model="itemDialog.data.wordlist"
+              @input="wordlistTainted = true"
+              dense
+              filled
+              autogrow
+            />
+          </div>
 
           <div class="row q-mt-lg">
             <div class="col q-ml-lg">

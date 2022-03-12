@@ -4,26 +4,17 @@ async def m001_initial(db):
     """
     await db.execute(
         f"""
-        CREATE TABLE eightball.shops (
-            id {db.serial_primary_key},
-            wallet TEXT NOT NULL,
-            method TEXT NOT NULL,
-            wordlist TEXT
-        );
-        """
-    )
-
-    await db.execute(
-        f"""
-        CREATE TABLE eightball.items (
-            shop INTEGER NOT NULL REFERENCES {db.references_schema}shops (id),
+        CREATE TABLE eightball.games (
+            game INTEGER NOT NULL REFERENCES {db.references_schema}games (id),
             id {db.serial_primary_key},
             name TEXT NOT NULL,
             description TEXT NOT NULL,
+            wallet TEXT NOT NULL,
             image TEXT, -- image/png;base64,...
             enabled BOOLEAN NOT NULL DEFAULT true,
             price INTEGER NOT NULL,
-            unit TEXT NOT NULL DEFAULT 'sat'
+            unit TEXT NOT NULL DEFAULT 'sat',
+            wordlist TEXT
         );
         """
     )

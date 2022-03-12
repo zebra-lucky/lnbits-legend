@@ -1,6 +1,6 @@
 {
-  "name": "eightball",
-  "short_description": "Receive payments for products offline!",
+  "name": "EightBall",
+  "short_description": "Send recipts picked by RNG",
   "icon": "auto_awesome",
-  "contributors": ["fiatjaf"]
+  "contributors": ["Ben Arc"]
 }

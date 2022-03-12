@@ -5,7 +5,8 @@ Vue.component(VueQrcode.name, VueQrcode)
 const pica = window.pica()
 
 const defaultItemData = {
-  unit: 'sat'
+  unit: 'sat',
+  wordlist: []
 }
 
 new Vue({
@@ -78,9 +79,9 @@ new Vue({
     },
     changedWallet(wallet) {
       this.selectedWallet = wallet
-      this.loadShop()
+      this.loadgame()
     },
-    loadShop() {
+    loadgame() {
       LNbits.api
         .request(
           'GET',
@@ -115,7 +116,7 @@ new Vue({
           (this.confirmationMethod === 'wordlist' ? ' Counter reset.' : ''),
         timeout: 700
       })
-      this.loadShop()
+      this.loadgame()
     },
     async sendItem() {
       let {id, name, image, description, price, unit} = this.itemDialog.data
@@ -152,7 +153,7 @@ new Vue({
         return
       }
 
-      this.loadShop()
+      this.loadgame()
       this.itemDialog.show = false
       this.itemDialog.data = {...defaultItemData}
     },
@@ -206,7 +207,7 @@ new Vue({
   },
   created() {
     this.selectedWallet = this.g.user.wallets[0]
-    this.loadShop()
+    this.loadgame()
 
     LNbits.api
       .request('GET', '/eightball/api/v1/currencies')

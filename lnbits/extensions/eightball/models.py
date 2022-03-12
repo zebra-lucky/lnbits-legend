@@ -11,27 +11,27 @@ from pydantic import BaseModel
 from starlette.requests import Request
 from .helpers import totp
 
-shop_counters: Dict = {}
+game_counters: Dict = {}
 
 
-class ShopCounter:
+class gameCounter:
     wordlist: List[str]
     fulfilled_payments: OrderedDict
     counter: int
 
     @classmethod
-    def invoke(cls, shop: "Shop"):
-        shop_counter = shop_counters.get(shop.id)
-        if not shop_counter:
-            shop_counter = cls(wordlist=shop.wordlist.split("\n"))
-            shop_counters[shop.id] = shop_counter
-        return shop_counter
+    def invoke(cls, game: "game"):
+        game_counter = game_counters.get(game.id)
+        if not game_counter:
+            game_counter = cls(wordlist=game.wordlist.split("\n"))
+            game_counters[game.id] = game_counter
+        return game_counter
 
     @classmethod
-    def reset(cls, shop: "Shop"):
-        shop_counter = cls.invoke(shop)
-        shop_counter.counter = -1
-        shop_counter.wordlist = shop.wordlist.split("\n")
+    def reset(cls, game: "game"):
+        game_counter = cls.invoke(game)
+        game_counter.counter = -1
+        game_counter.wordlist = game.wordlist.split("\n")
 
     def __init__(self, wordlist: List[str]):
         self.wordlist = wordlist
@@ -56,38 +56,16 @@ class ShopCounter:
         return word
 
 
-class Shop(BaseModel):
-    id: int
-    wallet: str
-    method: str
-    wordlist: str
-
-    @property
-    def otp_key(self) -> str:
-        return base64.b32encode(
-            hashlib.sha256(
-                ("otpkey" + str(self.id) + self.wallet).encode("ascii")
-            ).digest()
-        ).decode("ascii")
-
-    def get_code(self, payment_hash: str) -> str:
-        if self.method == "wordlist":
-            sc = ShopCounter.invoke(self)
-            return sc.get_word(payment_hash)
-        elif self.method == "totp":
-            return totp(self.otp_key)
-        return ""
-
-
-class Item(BaseModel):
-    shop: int
+class game(BaseModel):
     id: int
     name: str
     description: str
+    wallet: str
     image: Optional[str]
     enabled: bool
     price: int
     unit: str
+    wordlist: str
 
     def lnurl(self, req: Request) -> str:
         return lnurl_encode(req.url_for("eightball.lnurl_response", item_id=self.id))
@@ -108,12 +86,20 @@ class Item(BaseModel):
         return LnurlPayMetadata(json.dumps(metadata))
 
     def success_action(
-        self, shop: Shop, payment_hash: str, req: Request
+        self, wordlist: wordlist, payment_hash: str, req: Request
     ) -> Optional[LnurlPaySuccessAction]:
-        if not shop.wordlist:
+        if not wordlist:
             return None
 
         return UrlAction(
             url=req.url_for("eightball.confirmation_code", p=payment_hash),
             description="Open to get the confirmation code for your purchase.",
         )
+
+    def get_code(self, payment_hash: str) -> str:
+        if self.method == "wordlist":
+            sc = gameCounter.invoke(self)
+            return sc.get_word(payment_hash)
+        elif self.method == "totp":
+            return totp(self.otp_key)
+        return ""

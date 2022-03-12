@@ -13,14 +13,14 @@ from lnbits.utils.exchange_rates import currencies
 
 from . import eightball_ext
 from .crud import (
-    add_item,
-    delete_item_from_shop,
-    get_items,
-    get_or_create_shop_by_wallet,
+    add_game,
+    delete_game_from_game,
+    get_games,
+    get_or_create_game_by_wallet,
     set_method,
-    update_item,
+    update_game,
 )
-from .models import ShopCounter
+from .models import gameCounter
 
 
 @eightball_ext.get("/api/v1/currencies")
@@ -29,16 +29,16 @@ async def api_list_currencies_available():
 
 
 @eightball_ext.get("/api/v1/eightball")
-async def api_shop_from_wallet(
+async def api_game_from_wallet(
     r: Request, wallet: WalletTypeInfo = Depends(get_key_type)
 ):
-    shop = await get_or_create_shop_by_wallet(wallet.wallet.id)
-    items = await get_items(shop.id)
+    game = await get_or_create_game_by_wallet(wallet.wallet.id)
+    games = await get_games(game.id)
 
     try:
         return {
-            **shop.dict(),
-            **{"otp_key": shop.otp_key, "items": [item.values(r) for item in items]},
+            **game.dict(),
+            **{"otp_key": game.otp_key, "games": [game.values(r) for game in games]},
         }
     except LnurlInvalidUrl:
         raise HTTPException(
@@ -47,7 +47,7 @@ async def api_shop_from_wallet(
         )
 
 
-class CreateItemsData(BaseModel):
+class CreategamesData(BaseModel):
     name: str
     description: str
     image: Optional[str]
@@ -55,21 +55,21 @@ class CreateItemsData(BaseModel):
     unit: str
 
 
-@eightball_ext.post("/api/v1/eightball/items")
-@eightball_ext.put("/api/v1/eightball/items/{item_id}")
-async def api_add_or_update_item(
-    data: CreateItemsData, item_id=None, wallet: WalletTypeInfo = Depends(get_key_type)
+@eightball_ext.post("/api/v1/eightball/games")
+@eightball_ext.put("/api/v1/eightball/games/{game_id}")
+async def api_add_or_update_game(
+    data: CreategamesData, game_id=None, wallet: WalletTypeInfo = Depends(get_key_type)
 ):
-    shop = await get_or_create_shop_by_wallet(wallet.wallet.id)
-    if item_id == None:
-        await add_item(
-            shop.id, data.name, data.description, data.image, data.price, data.unit
+    game = await get_or_create_game_by_wallet(wallet.wallet.id)
+    if game_id == None:
+        await add_game(
+            game.id, data.name, data.description, data.image, data.price, data.unit
         )
         return HTMLResponse(status_code=HTTPStatus.CREATED)
     else:
-        await update_item(
-            shop.id,
-            item_id,
+        await update_game(
+            game.id,
+            game_id,
             data.name,
             data.description,
             data.image,
@@ -78,10 +78,10 @@ async def api_add_or_update_item(
         )
 
 
-@eightball_ext.delete("/api/v1/eightball/items/{item_id}")
-async def api_delete_item(item_id, wallet: WalletTypeInfo = Depends(get_key_type)):
-    shop = await get_or_create_shop_by_wallet(wallet.wallet.id)
-    await delete_item_from_shop(shop.id, item_id)
+@eightball_ext.delete("/api/v1/eightball/games/{game_id}")
+async def api_delete_game(game_id, wallet: WalletTypeInfo = Depends(get_key_type)):
+    game = await get_or_create_game_by_wallet(wallet.wallet.id)
+    await delete_game_from_game(game.id, game_id)
     raise HTTPException(status_code=HTTPStatus.NO_CONTENT)
 
 
@@ -99,12 +99,12 @@ async def api_set_method(
     wordlist = data.wordlist.split("\n") if data.wordlist else None
     wordlist = [word.strip() for word in wordlist if word.strip()]
 
-    shop = await get_or_create_shop_by_wallet(wallet.wallet.id)
-    if not shop:
+    game = await get_or_create_game_by_wallet(wallet.wallet.id)
+    if not game:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND)
 
-    updated_shop = await set_method(shop.id, method, "\n".join(wordlist))
-    if not updated_shop:
+    updated_game = await set_method(game.id, method, "\n".join(wordlist))
+    if not updated_game:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND)
 
-    ShopCounter.reset(updated_shop)
+    gameCounter.reset(updated_game)

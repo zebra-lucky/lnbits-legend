@@ -3,67 +3,24 @@ from typing import List, Optional
 from lnbits.db import SQLITE
 from . import db
 from .wordlists import animals
-from .models import Shop, Item
+from .models import game, game
 
 
-async def create_shop(*, wallet_id: str) -> int:
-    returning = "" if db.type == SQLITE else "RETURNING ID"
-    method = db.execute if db.type == SQLITE else db.fetchone
-
-    result = await (method)(
-        f"""
-        INSERT INTO eightball.shops (wallet, wordlist, method)
-        VALUES (?, ?, 'wordlist')
-        {returning}
-        """,
-        (wallet_id, "\n".join(animals)),
-    )
-    if db.type == SQLITE:
-        return result._result_proxy.lastrowid
-    else:
-        return result[0]
-
-
-async def get_shop(id: int) -> Optional[Shop]:
-    row = await db.fetchone("SELECT * FROM eightball.shops WHERE id = ?", (id,))
-    return Shop(**dict(row)) if row else None
-
-
-async def get_or_create_shop_by_wallet(wallet: str) -> Optional[Shop]:
-    row = await db.fetchone("SELECT * FROM eightball.shops WHERE wallet = ?", (wallet,))
-
-    if not row:
-        # create on the fly
-        ls_id = await create_shop(wallet_id=wallet)
-        return await get_shop(ls_id)
-
-    return Shop(**dict(row)) if row else None
-
-
-async def set_method(shop: int, method: str, wordlist: str = "") -> Optional[Shop]:
-    await db.execute(
-        "UPDATE eightball.shops SET method = ?, wordlist = ? WHERE id = ?",
-        (method, wordlist, shop),
-    )
-    return await get_shop(shop)
-
-
-async def add_item(
-    shop: int, name: str, description: str, image: Optional[str], price: int, unit: str
+async def add_game(
+    name: str, description: str, image: Optional[str], price: int, unit: str
 ) -> int:
     result = await db.execute(
         """
-        INSERT INTO eightball.items (shop, name, description, image, price, unit)
+        INSERT INTO eightball.games (game, name, description, image, price, unit)
         VALUES (?, ?, ?, ?, ?, ?)
         """,
-        (shop, name, description, image, price, unit),
+        (game, name, description, image, price, unit),
     )
     return result._result_proxy.lastrowid
 
 
-async def update_item(
-    shop: int,
-    item_id: int,
+async def update_game(
+    game_id: int,
     name: str,
     description: str,
     image: Optional[str],
@@ -72,35 +29,37 @@ async def update_item(
 ) -> int:
     await db.execute(
         """
-        UPDATE eightball.items SET
+        UPDATE eightball.games SET
           name = ?,
           description = ?,
+          wallet = ?,
           image = ?,
           price = ?,
-          unit = ?
-        WHERE shop = ? AND id = ?
+          unit = ?,
+          wordlist = ?
+        WHERE game = ? AND id = ?
         """,
-        (name, description, image, price, unit, shop, item_id),
+        (name, description, image, price, unit, game, game_id),
     )
-    return item_id
+    return game_id
 
 
-async def get_item(id: int) -> Optional[Item]:
+async def get_game(id: int) -> Optional[game]:
     row = await db.fetchone(
-        "SELECT * FROM eightball.items WHERE id = ?  LIMIT 1", (id,)
+        "SELECT * FROM eightball.games WHERE id = ?  LIMIT 1", (id,)
     )
-    return Item(**dict(row)) if row else None
+    return game(**dict(row)) if row else None
 
 
-async def get_items(shop: int) -> List[Item]:
-    rows = await db.fetchall("SELECT * FROM eightball.items WHERE shop = ?", (shop,))
-    return [Item(**dict(row)) for row in rows]
+async def get_games(game: int) -> List[game]:
+    rows = await db.fetchall("SELECT * FROM eightball.games WHERE game = ?", (game,))
+    return [game(**dict(row)) for row in rows]
 
 
-async def delete_item_from_shop(shop: int, item_id: int):
+async def delete_game_from_game(game: int, game_id: int):
     await db.execute(
         """
-        DELETE FROM eightball.items WHERE shop = ? AND id = ?
+        DELETE FROM eightball.games WHERE game = ? AND id = ?
         """,
-        (shop, item_id),
+        (game, game_id),
     )

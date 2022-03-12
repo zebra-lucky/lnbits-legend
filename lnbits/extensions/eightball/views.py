@@ -12,8 +12,8 @@ from lnbits.core.crud import get_standalone_payment
 from lnbits.core.views.api import api_payment
 
 from . import eightball_ext, eightball_renderer
-from .models import Item
-from .crud import get_item, get_shop
+from .models import game
+from .crud import get_game
 from fastapi import Request, HTTPException
 
 
@@ -25,21 +25,21 @@ async def index(request: Request, user: User = Depends(check_user_exists)):
 
 
 @eightball_ext.get("/print", response_class=HTMLResponse)
-async def print_qr_codes(request: Request, items: List[int] = None):
-    items = []
-    for item_id in request.query_params.get("items").split(","):
-        item = await get_item(item_id)  # type: Item
-        if item:
-            items.append(
+async def print_qr_codes(request: Request, games: List[int] = None):
+    games = []
+    for game_id in request.query_params.get("games").split(","):
+        game = await get_game(game_id)  # type: game
+        if game:
+            games.append(
                 {
-                    "lnurl": item.lnurl(request),
-                    "name": item.name,
-                    "price": f"{item.price} {item.unit}",
+                    "lnurl": game.lnurl(request),
+                    "name": game.name,
+                    "price": f"{game.price} {game.unit}",
                 }
             )
 
     return eightball_renderer().TemplateResponse(
-        "eightball/print.html", {"request": request, "items": items}
+        "eightball/print.html", {"request": request, "games": games}
     )
 
 
@@ -72,14 +72,14 @@ async def confirmation_code(p: str = Query(...)):
             detail="Too much time has passed." + style,
         )
 
-    item = await get_item(payment.extra.get("item"))
-    shop = await get_shop(item.shop)
+    game = await get_game(payment.extra.get("game"))
+    game = await get_game(game.game)
 
     return (
         f"""
-[{shop.get_code(payment_hash)}]<br>
-{item.name}<br>
-{item.price} {item.unit}<br>
+[{game.get_code(payment_hash)}]<br>
+{game.name}<br>
+{game.price} {game.unit}<br>
 {datetime.utcfromtimestamp(payment.time).strftime('%Y-%m-%d %H:%M:%S')}
     """
         + style

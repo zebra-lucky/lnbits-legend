@@ -9,49 +9,49 @@ from lnurl import (  # type: ignore
 from starlette.requests import Request
 
 from lnbits.core.services import create_invoice
-from lnbits.extensions.eightball.models import Item
+from lnbits.extensions.eightball.models import game
 from lnbits.utils.exchange_rates import fiat_amount_as_satoshis
 
 from . import eightball_ext
-from .crud import get_item, get_shop
+from .crud import get_game, get_game
 
 
-@eightball_ext.get("/lnurl/{item_id}", name="eightball.lnurl_response")
-async def lnurl_response(req: Request, item_id: int = Query(...)):
-    item = await get_item(item_id)  # type: Item
-    if not item:
-        return {"status": "ERROR", "reason": "Item not found."}
+@eightball_ext.get("/lnurl/{game_id}", name="eightball.lnurl_response")
+async def lnurl_response(req: Request, game_id: int = Query(...)):
+    game = await get_game(game_id)  # type: game
+    if not game:
+        return {"status": "ERROR", "reason": "game not found."}
 
-    if not item.enabled:
-        return {"status": "ERROR", "reason": "Item disabled."}
+    if not game.enabled:
+        return {"status": "ERROR", "reason": "game disabled."}
 
     price_msat = (
-        await fiat_amount_as_satoshis(item.price, item.unit)
-        if item.unit != "sat"
-        else item.price
+        await fiat_amount_as_satoshis(game.price, game.unit)
+        if game.unit != "sat"
+        else game.price
     ) * 1000
 
     resp = LnurlPayResponse(
-        callback=req.url_for("eightball.lnurl_callback", item_id=item.id),
+        callback=req.url_for("eightball.lnurl_callback", game_id=game.id),
         min_sendable=price_msat,
         max_sendable=price_msat,
-        metadata=await item.lnurlpay_metadata(),
+        metadata=await game.lnurlpay_metadata(),
     )
 
     return resp.dict()
 
 
-@eightball_ext.get("/lnurl/cb/{item_id}", name="eightball.lnurl_callback")
-async def lnurl_callback(request: Request, item_id: int):
-    item = await get_item(item_id)  # type: Item
-    if not item:
-        return {"status": "ERROR", "reason": "Couldn't find item."}
+@eightball_ext.get("/lnurl/cb/{game_id}", name="eightball.lnurl_callback")
+async def lnurl_callback(request: Request, game_id: int):
+    game = await get_game(game_id)  # type: game
+    if not game:
+        return {"status": "ERROR", "reason": "Couldn't find game."}
 
-    if item.unit == "sat":
-        min = item.price * 1000
-        max = item.price * 1000
+    if game.unit == "sat":
+        min = game.price * 1000
+        max = game.price * 1000
     else:
-        price = await fiat_amount_as_satoshis(item.price, item.unit)
+        price = await fiat_amount_as_satoshis(game.price, game.unit)
         # allow some fluctuation (the fiat price may have changed between the calls)
         min = price * 995
         max = price * 1010
@@ -66,25 +66,25 @@ async def lnurl_callback(request: Request, item_id: int):
             reason=f"Amount {amount_received} is greater than maximum {max}."
         ).dict()
 
-    shop = await get_shop(item.shop)
+    game = await get_game(game.game)
 
     try:
         payment_hash, payment_request = await create_invoice(
-            wallet_id=shop.wallet,
+            wallet_id=game.wallet,
             amount=int(amount_received / 1000),
-            memo=item.name,
+            memo=game.name,
             description_hash=hashlib.sha256(
-                (await item.lnurlpay_metadata()).encode("utf-8")
+                (await game.lnurlpay_metadata()).encode("utf-8")
             ).digest(),
-            extra={"tag": "eightball", "item": item.id},
+            extra={"tag": "eightball", "game": game.id},
         )
     except Exception as exc:
         return LnurlErrorResponse(reason=exc.message).dict()
 
     resp = LnurlPayActionResponse(
         pr=payment_request,
-        success_action=item.success_action(shop, payment_hash, request)
-        if shop.method
+        success_action=game.success_action(game, payment_hash, request)
+        if game.method
         else None,
         routes=[],
     )

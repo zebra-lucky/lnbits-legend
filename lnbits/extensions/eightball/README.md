@@ -1,12 +1,12 @@
-# Offline Shop
+# Offline game
 
 ## Create QR codes for each product and display them on your store for receiving payments Offline
 
-[![video tutorial offline shop](http://img.youtube.com/vi/_XAvM_LNsoo/0.jpg)](https://youtu.be/_XAvM_LNsoo 'video tutorial offline shop')
+[![video tutorial offline game](http://img.youtube.com/vi/_XAvM_LNsoo/0.jpg)](https://youtu.be/_XAvM_LNsoo 'video tutorial offline game')
 
-LNBits Offline Shop allows for merchants to receive Bitcoin payments while offline and without any electronic device.
+LNBits Offline game allows for merchants to receive Bitcoin payments while offline and without any electronic device.
 
-Merchant will create items and associate a QR code ([a LNURLp](https://github.com/lnbits/lnbits/blob/master/lnbits/extensions/lnurlp/README.md)) with a price. He can then print the QR codes and display them on their shop. When a costumer chooses an item, scans the QR code, gets the description and price. After payment, the costumer gets a confirmation code that the merchant can validate to be sure the payment was successful.
+Merchant will create items and associate a QR code ([a LNURLp](https://github.com/lnbits/lnbits/blob/master/lnbits/extensions/lnurlp/README.md)) with a price. He can then print the QR codes and display them on their game. When a costumer chooses an item, scans the QR code, gets the description and price. After payment, the costumer gets a confirmation code that the merchant can validate to be sure the payment was successful.
 
 Costumers must use an LNURL pay capable wallet.
 
@@ -14,8 +14,8 @@ Costumers must use an LNURL pay capable wallet.
 
 ## Usage
 
-1. Entering the Offline shop extension you'll see an Items list, the Shop wallet and a Wordslist\
-   ![offline shop back office](https://i.imgur.com/Ei7cxj9.png)
+1. Entering the Offline game extension you'll see an Items list, the game wallet and a Wordslist\
+   ![offline game back office](https://i.imgur.com/Ei7cxj9.png)
 2. Begin by creating an item, click "ADD NEW ITEM"
    - set the item name and a small description
    - you can set an optional, preferably square image, that will show up on the costumer wallet - _depending on wallet_
@@ -23,9 +23,9 @@ Costumers must use an LNURL pay capable wallet.
      ![add new item](https://i.imgur.com/pkZqRgj.png)
 3. After creating some products, click on "PRINT QR CODES"\
    ![print qr codes](https://i.imgur.com/2GAiSTe.png)
-4. You'll see a QR code for each product in your LNBits Offline Shop with a title and price ready for printing\
+4. You'll see a QR code for each product in your LNBits Offline game with a title and price ready for printing\
    ![qr codes sheet](https://i.imgur.com/faEqOcd.png)
-5. Place the printed QR codes on your shop, or at the fair stall, or have them as a menu style laminated sheet
+5. Place the printed QR codes on your game, or at the fair stall, or have them as a menu style laminated sheet
 6. Choose what type of confirmation do you want costumers to report to merchant after a successful payment\
    ![wordlist](https://i.imgur.com/9aM6NUL.png)
 
