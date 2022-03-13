@@ -1,4 +1,4 @@
-animals = [
+phrases = [
     "It is certain",
     "It is decidedly so",
     "Without a doubt",

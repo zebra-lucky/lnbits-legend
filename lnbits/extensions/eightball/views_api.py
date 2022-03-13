@@ -16,11 +16,8 @@ from .crud import (
     add_game,
     delete_game_from_game,
     get_games,
-    get_or_create_game_by_wallet,
-    set_method,
     update_game,
 )
-from .models import gameCounter
 
 
 @eightball_ext.get("/api/v1/currencies")

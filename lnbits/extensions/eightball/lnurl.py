@@ -13,7 +13,7 @@ from lnbits.extensions.eightball.models import game
 from lnbits.utils.exchange_rates import fiat_amount_as_satoshis
 
 from . import eightball_ext
-from .crud import get_game, get_game
+from .crud import get_game
 
 
 @eightball_ext.get("/lnurl/{game_id}", name="eightball.lnurl_response")

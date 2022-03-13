@@ -11,50 +11,6 @@ from pydantic import BaseModel
 from starlette.requests import Request
 from .helpers import totp
 
-game_counters: Dict = {}
-
-
-class gameCounter:
-    wordlist: List[str]
-    fulfilled_payments: OrderedDict
-    counter: int
-
-    @classmethod
-    def invoke(cls, game: "game"):
-        game_counter = game_counters.get(game.id)
-        if not game_counter:
-            game_counter = cls(wordlist=game.wordlist.split("\n"))
-            game_counters[game.id] = game_counter
-        return game_counter
-
-    @classmethod
-    def reset(cls, game: "game"):
-        game_counter = cls.invoke(game)
-        game_counter.counter = -1
-        game_counter.wordlist = game.wordlist.split("\n")
-
-    def __init__(self, wordlist: List[str]):
-        self.wordlist = wordlist
-        self.fulfilled_payments = OrderedDict()
-        self.counter = -1
-
-    def get_word(self, payment_hash):
-        if payment_hash in self.fulfilled_payments:
-            return self.fulfilled_payments[payment_hash]
-
-        # get a new word
-        self.counter += 1
-        word = self.wordlist[self.counter % len(self.wordlist)]
-        self.fulfilled_payments[payment_hash] = word
-
-        # cleanup confirmation words cache
-        to_remove = len(self.fulfilled_payments) - 23
-        if to_remove > 0:
-            for i in range(to_remove):
-                self.fulfilled_payments.popitem(False)
-
-        return word
-
 
 class game(BaseModel):
     id: int
@@ -65,7 +21,7 @@ class game(BaseModel):
     enabled: bool
     price: int
     unit: str
-    wordlist: str
+    wordlist: List[str]
 
     def lnurl(self, req: Request) -> str:
         return lnurl_encode(req.url_for("eightball.lnurl_response", item_id=self.id))
@@ -86,7 +42,7 @@ class game(BaseModel):
         return LnurlPayMetadata(json.dumps(metadata))
 
     def success_action(
-        self, wordlist: wordlist, payment_hash: str, req: Request
+        self, wordlist: str, payment_hash: str, req: Request
     ) -> Optional[LnurlPaySuccessAction]:
         if not wordlist:
             return None
