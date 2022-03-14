@@ -20,7 +20,8 @@ from fastapi import Request, HTTPException
 @eightball_ext.get("/", response_class=HTMLResponse)
 async def index(request: Request, user: User = Depends(check_user_exists)):
     return eightball_renderer().TemplateResponse(
-        "eightball/index.html", {"request": request, "user": user.dict()}
+        "eightball/index.html",
+        {"request": request, "user": user.dict()},
     )
 
 

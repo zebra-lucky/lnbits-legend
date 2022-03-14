@@ -14,9 +14,11 @@ from lnbits.utils.exchange_rates import currencies
 from . import eightball_ext
 from .crud import (
     add_game,
-    delete_game_from_game,
+    delete_game,
     get_games,
-    update_game,
+)
+from lnbits.core.crud import (
+    get_wallet_for_key,
 )
 
 
@@ -29,14 +31,10 @@ async def api_list_currencies_available():
 async def api_game_from_wallet(
     r: Request, wallet: WalletTypeInfo = Depends(get_key_type)
 ):
-    game = await get_or_create_game_by_wallet(wallet.wallet.id)
-    games = await get_games(game.id)
+    games = await get_games(wallet.wallet.user)
 
     try:
-        return {
-            **game.dict(),
-            **{"otp_key": game.otp_key, "games": [game.values(r) for game in games]},
-        }
+        return [game.dict() for game in games]
     except LnurlInvalidUrl:
         raise HTTPException(
             status_code=HTTPStatus.UPGRADE_REQUIRED,
@@ -47,61 +45,46 @@ async def api_game_from_wallet(
 class CreategamesData(BaseModel):
     name: str
     description: str
-    image: Optional[str]
+    wallet: str
     price: int
-    unit: str
+    wordlist: str
 
 
 @eightball_ext.post("/api/v1/eightball/games")
-@eightball_ext.put("/api/v1/eightball/games/{game_id}")
 async def api_add_or_update_game(
-    data: CreategamesData, game_id=None, wallet: WalletTypeInfo = Depends(get_key_type)
+    data: CreategamesData, wallet: WalletTypeInfo = Depends(get_key_type)
 ):
-    game = await get_or_create_game_by_wallet(wallet.wallet.id)
-    if game_id == None:
-        await add_game(
-            game.id, data.name, data.description, data.image, data.price, data.unit
+    theWallet = await get_wallet_for_key(data.wallet, "invoice")
+    if not theWallet:
+        raise HTTPException(
+            status_code=HTTPStatus.BAD_REQUEST,
+            detail="Wrong keys",
         )
-        return HTMLResponse(status_code=HTTPStatus.CREATED)
-    else:
-        await update_game(
-            game.id,
-            game_id,
-            data.name,
-            data.description,
-            data.image,
-            data.price,
-            data.unit,
+    if theWallet.user != wallet.wallet.user:
+        raise HTTPException(
+            status_code=HTTPStatus.BAD_REQUEST,
+            detail="Wrong keys",
         )
+
+    game = await add_game(
+        data.name,
+        data.description,
+        theWallet.user,
+        data.wallet,
+        data.price,
+        data.wordlist,
+    )
+    if not game:
+        raise HTTPException(
+            status_code=HTTPStatus.BAD_REQUEST,
+            detail="Failed to get game",
+        )
+    print(game)
+    return game
 
 
 @eightball_ext.delete("/api/v1/eightball/games/{game_id}")
 async def api_delete_game(game_id, wallet: WalletTypeInfo = Depends(get_key_type)):
-    game = await get_or_create_game_by_wallet(wallet.wallet.id)
-    await delete_game_from_game(game.id, game_id)
+
+    await delete_game(game_id)
     raise HTTPException(status_code=HTTPStatus.NO_CONTENT)
-
-
-class CreateMethodData(BaseModel):
-    method: str
-    wordlist: Optional[str]
-
-
-@eightball_ext.put("/api/v1/eightball/method")
-async def api_set_method(
-    data: CreateMethodData, wallet: WalletTypeInfo = Depends(get_key_type)
-):
-    method = data.method
-
-    wordlist = data.wordlist.split("\n") if data.wordlist else None
-    wordlist = [word.strip() for word in wordlist if word.strip()]
-
-    game = await get_or_create_game_by_wallet(wallet.wallet.id)
-    if not game:
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND)
-
-    updated_game = await set_method(game.id, method, "\n".join(wordlist))
-    if not updated_game:
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND)
-
-    gameCounter.reset(updated_game)

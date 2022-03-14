@@ -13,15 +13,12 @@ from .helpers import totp
 
 
 class game(BaseModel):
-    id: int
+    id: str
     name: str
     description: str
     wallet: str
-    image: Optional[str]
-    enabled: bool
     price: int
-    unit: str
-    wordlist: List[str]
+    wordlist: str
 
     def lnurl(self, req: Request) -> str:
         return lnurl_encode(req.url_for("eightball.lnurl_response", item_id=self.id))

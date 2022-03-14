@@ -4,13 +4,13 @@
   <div class="col-12 col-md-7 q-gutter-y-md">
     <q-card>
       <q-card-section>
-        <div class="row items-center no-wrap q-mb-md">
+        <div class="row games-center no-wrap q-mb-md">
           <div class="col">
-            <h5 class="text-subtitle1 q-my-none">Items</h5>
+            <h5 class="text-subtitle1 q-my-none">Games</h5>
           </div>
           <div class="col q-ml-lg">
             <q-btn unelevated color="primary" @click="openNewDialog()"
-              >Add new item</q-btn
+              >Add new game</q-btn
             >
           </div>
         </div>
@@ -19,9 +19,9 @@
           dense
           flat
           selection="multiple"
-          :data="eightball.items"
+          :data="eightball"
           row-key="id"
-          no-data-label="No items for sale yet"
+          no-data-label="No games for sale yet"
           :pagination="{rowsPerPage: 0}"
           :binary-state-sort="true"
         >
@@ -31,7 +31,6 @@
               <q-th auto-width>Name</q-th>
               <q-th auto-width>Description</q-th>
               <q-th auto-width>Wallet</q-th>
-              <q-th auto-width>Image</q-th>
               <q-th auto-width>Price</q-th>
               <q-th auto-width></q-th>
             </q-tr>
@@ -43,34 +42,19 @@
                   unelevated
                   dense
                   size="xs"
-                  :icon="props.row.enabled ? 'done' : 'block'"
-                  :color="props.row.enabled ? 'green' : ($q.dark.isActive ? 'grey-7' : 'grey-5')"
+                  icon="launch"
                   type="a"
-                  @click="toggleItem(props.row.id)"
+                  @click="toggleGame(props.row.id)"
                   target="_blank"
                 ></q-btn>
               </q-td>
               <q-td auto-width class="text-center">{{ props.row.name }}</q-td>
               <q-td auto-width> {{ props.row.description }} </q-td>
+              <q-td auto-width> {{ props.row.wallet }} </q-td>
               <q-td class="text-center" auto-width>
-                <img
-                  v-if="props.row.image"
-                  :src="props.row.image"
-                  style="height: 1.5em"
-                />
-              </q-td>
-              <q-td class="text-center" auto-width>
-                {{ props.row.price }} {{ props.row.unit }}
+                {{ props.row.price }}
               </q-td>
               <q-td auto-width>
-                <q-btn
-                  flat
-                  dense
-                  size="xs"
-                  @click="openUpdateDialog(props.row.id)"
-                  icon="edit"
-                  color="light-blue"
-                ></q-btn>
                 <q-btn
                   unelevated
                   dense
@@ -78,7 +62,7 @@
                   icon="delete"
                   color="negative"
                   type="a"
-                  @click="deleteItem(props.row.id)"
+                  @click="deleteGame(props.row.id)"
                   target="_blank"
                 ></q-btn>
               </q-td>
@@ -104,107 +88,76 @@
     </q-card>
   </div>
 
-  <q-dialog v-model="itemDialog.show">
+  <q-dialog v-model="gameDialog.show">
     <q-card class="q-pa-lg q-pt-xl lnbits__dialog-card">
       <q-card-section>
-        <h5
-          class="q-ma-none"
-          v-if="itemDialog.data.id"
-          v-text="itemDialog.data.name"
-        ></h5>
-        <h5 class="q-ma-none q-mb-xl" v-else>Adding a new item</h5>
+        <h5 class="q-ma-none q-mb-xl">Adding a new game</h5>
 
-        <q-responsive v-if="itemDialog.data.id" :ratio="1">
+        <q-responsive v-if="gameDialog.data.id" :ratio="1">
           <qrcode
-            :value="itemDialog.data.lnurl"
+            :value="gameDialog.data.lnurl"
             :options="{width: 800}"
             class="rounded-borders"
           ></qrcode>
         </q-responsive>
 
-        <div v-if="itemDialog.data.id" class="row q-gutter-sm justify-center">
+        <div v-if="gameDialog.data.id" class="row q-gutter-sm justify-center">
           <q-btn
             outline
             color="grey"
-            @click="copyText(itemDialog.data.lnurl, 'LNURL copied to clipboard!')"
+            @click="copyText(gameDialog.data.lnurl, 'LNURL copied to clipboard!')"
             class="q-mb-lg"
             >Copy LNURL</q-btn
           >
         </div>
-        <q-form @submit="sendItem" class="q-gutter-md">
+        <q-form @submit="sendGame" class="q-gutter-md">
           <q-input
             filled
             dense
-            v-model.trim="itemDialog.data.name"
+            v-model.trim="gameDialog.data.name"
             type="text"
-            label="Item name"
-          ></q-input>
-          <q-input
-            filled
-            dense
-            v-model.trim="itemDialog.data.description"
-            type="text"
-            label="Brief description"
-          ></q-input>
-          <q-file
-            filled
-            dense
-            capture="environment"
-            accept="image/jpeg, image/png"
-            :max-file-size="3*1024**2"
-            label="Small image (optional)"
-            clearable
-            @input="imageAdded"
-            @clear="imageCleared"
-          >
-            <template v-if="itemDialog.data.image" v-slot:before>
-              <img style="height: 1em" :src="itemDialog.data.image" />
-            </template>
-            <template v-if="itemDialog.data.image" v-slot:append>
-              <q-icon
-                name="cancel"
-                @click.stop.prevent="imageCleared"
-                class="cursor-pointer"
-              />
-            </template>
-          </q-file>
-          <q-input
-            filled
-            dense
-            v-model.number="itemDialog.data.price"
-            type="number"
-            step="0.001"
-            min="0.001"
-            :label="`Item price (${itemDialog.data.unit})`"
+            label="Game name"
           ></q-input>
           <q-select
             filled
             dense
-            v-model="itemDialog.data.unit"
+            emit-value
+            v-model="gameDialog.data.wallet"
+            :options="g.user.walletOptions"
+            label="Wallet *"
+          >
+          </q-select>
+          <q-input
+            filled
+            dense
+            v-model.trim="gameDialog.data.description"
             type="text"
-            label="Unit"
-            :options="itemDialog.units"
-          ></q-select>
+            label="Brief description"
+          ></q-input>
+          <q-input
+            filled
+            dense
+            v-model.number="gameDialog.data.price"
+            type="number"
+            step="0.001"
+            min="0.001"
+            label="Game price (sats)"
+          ></q-input>
+          <p>Phrases to be returned randomly as payment receipts</p>
           <div class="col q-mx-lg">
-            <q-input
-              v-model="itemDialog.data.wordlist"
-              @input="wordlistTainted = true"
-              dense
+            {% raw %}<q-input
+              v-model="gameDialog.data.wordlist"
+              value="gameDialog.data.wordlist"
               filled
               autogrow
-            />
+            ></q-input>
           </div>
-
+          {% endraw %}
           <div class="row q-mt-lg">
             <div class="col q-ml-lg">
-              <q-btn
-                unelevated
-                color="primary"
-                :disable="disabledAddItemButton()"
-                type="submit"
-              >
-                {% raw %}{{ itemDialog.data.id ? 'Update' : 'Add' }}{% endraw %}
-                Item
+              <q-btn unelevated color="primary" type="submit">
+                {% raw %}{{ gameDialog.data.id ? 'Update' : 'Add' }}{% endraw %}
+                Game
               </q-btn>
             </div>
             <div class="col q-ml-lg">
@@ -217,8 +170,59 @@
       </q-card-section>
     </q-card>
   </q-dialog>
+
+  <q-dialog v-model="qrCodeDialog.show" position="top">
+    <q-card v-if="qrCodeDialog.data" class="q-pa-lg lnbits__dialog-card">
+      {% raw %}
+      <q-responsive :ratio="1" class="q-mx-xl q-mb-md">
+        <qrcode
+          :value="qrCodeDialog.data.lnurl"
+          :options="{width: 800}"
+          class="rounded-borders"
+        ></qrcode>
+      </q-responsive>
+      <p style="word-break: break-all">
+        <strong>ID:</strong> {{ qrCodeDialog.data.id }}<br />
+        <strong>Amount:</strong> {{ qrCodeDialog.data.amount }}<br />
+        <span v-if="qrCodeDialog.data.currency"
+          ><strong>{{ qrCodeDialog.data.currency }} price:</strong> {{
+          fiatRates[qrCodeDialog.data.currency] ?
+          fiatRates[qrCodeDialog.data.currency] + ' sat' : 'Loading...' }}<br
+        /></span>
+        <strong>Accepts comments:</strong> {{ qrCodeDialog.data.comments }}<br />
+        <strong>Dispatches webhook to:</strong> {{ qrCodeDialog.data.webhook
+        }}<br />
+        <strong>On success:</strong> {{ qrCodeDialog.data.success }}<br />
+      </p>
+      {% endraw %}
+      <div class="row q-mt-lg q-gutter-sm">
+        <q-btn
+          outline
+          color="grey"
+          @click="copyText(qrCodeDialog.data.lnurl, 'LNURL copied to clipboard!')"
+          class="q-ml-sm"
+          >Copy LNURL</q-btn
+        >
+        <q-btn
+          outline
+          color="grey"
+          @click="copyText(qrCodeDialog.data.pay_url, 'Link copied to clipboard!')"
+          >Shareable link</q-btn
+        >
+        <q-btn
+          outline
+          color="grey"
+          icon="print"
+          type="a"
+          :href="qrCodeDialog.data.print_url"
+          target="_blank"
+        ></q-btn>
+        <q-btn v-close-popup flat color="grey" class="q-ml-auto">Close</q-btn>
+      </div>
+    </q-card>
+  </q-dialog>
 </div>
-{% endblock %} {% block scripts %} {{ window_vars(user) }}
+{% endblock %} {% block scripts %}{{ window_vars(user) }}
 <script src="https://cdn.jsdelivr.net/npm/pica@6.1.1/dist/pica.min.js"></script>
 <script src="{{ url_for('eightball_static', path='js/index.js') }}"></script>
 {% endblock %}
