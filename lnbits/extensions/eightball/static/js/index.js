@@ -4,12 +4,35 @@ Vue.component(VueQrcode.name, VueQrcode)
 
 const pica = window.pica()
 
+var mapGameLink = obj => {
+  obj._data = _.clone(obj)
+  console.log(obj._data)
+  obj.date = Quasar.utils.date.formatDate(
+    new Date(obj.time * 1000),
+    'YYYY-MM-DD HH:mm'
+  )
+  obj.print_url = [locationPath, 'print/', obj.id].join('')
+  obj.pay_url = [locationPath, obj.id].join('')
+  console.log(obj)
+  return obj
+}
+
 new Vue({
   el: '#vue',
   mixins: [windowMixin],
   data() {
     return {
       eightball: {
+      },
+      qrCodeDialog: {
+        show: false,
+        data: null
+      },
+      gameLinks: [],
+      gameLinksTable: {
+        pagination: {
+          rowsPerPage: 10
+        }
       },
       wordlist: ["It is certain",
         "It is decidedly so",
@@ -57,7 +80,7 @@ new Vue({
         )
         .then(response => {
           console.log(response.data)
-          this.eightball = response.data
+          this.gameLinks.push(mapGameLink(response.data))
         })
         .catch(err => {
           LNbits.utils.notifyApiError(err)
@@ -66,7 +89,7 @@ new Vue({
     sendGame() {
       console.log(this.gameDialog.data)
       if (!this.gameDialog.data.wallet){
-        this.gameDialog.data.wallet = this.g.user.wallets[0].adminkey
+        this.gameDialog.data.wallet = this.g.user.wallets[0].id
       }
  
           LNbits.api.request(
@@ -76,7 +99,9 @@ new Vue({
             this.gameDialog.data
           )
           .then(response => {
-            console.log(response.data)
+            console.log(mapGameLink(response.data))
+            this.gameLinks.push(mapGameLink(response.data))
+            this.gameDialog.show = false
             this.$q.notify({
               message: `Game '${this.gameDialog.data.name}' added.`,
               timeout: 700
@@ -85,7 +110,7 @@ new Vue({
          .catch(err => {
           LNbits.utils.notifyApiError(err)
         })
-      this.loadgame()
+      this.loadgames()
       this.gameDialog.show = false
     },
     deleteGame(gameId) {
@@ -96,16 +121,16 @@ new Vue({
             .request(
               'DELETE',
               '/eightball/api/v1/eightball/games/' + gameId,
-              this.selectedWallet.inkey
+              this.g.user.wallets[0].adminkey
             )
             .then(response => {
               this.$q.notify({
                 message: `Game deleted.`,
                 timeout: 700
               })
-              this.eightball.games.splice(
-                this.eightball.games.findIndex(game => game.id === gameId),
-                1
+              this.gameLinks = _.reject(
+                this.gameLinks,
+                obj => obj.id === linkId
               )
             })
             .catch(err => {

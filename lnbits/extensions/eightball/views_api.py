@@ -18,7 +18,7 @@ from .crud import (
     get_games,
 )
 from lnbits.core.crud import (
-    get_wallet_for_key,
+    get_wallet,
 )
 
 
@@ -54,7 +54,7 @@ class CreategamesData(BaseModel):
 async def api_add_or_update_game(
     data: CreategamesData, wallet: WalletTypeInfo = Depends(get_key_type)
 ):
-    theWallet = await get_wallet_for_key(data.wallet, "invoice")
+    theWallet = await get_wallet(data.wallet)
     if not theWallet:
         raise HTTPException(
             status_code=HTTPStatus.BAD_REQUEST,

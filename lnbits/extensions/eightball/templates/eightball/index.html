@@ -18,12 +18,10 @@
         <q-table
           dense
           flat
-          selection="multiple"
-          :data="eightball"
+          :data="gameLinks"
           row-key="id"
-          no-data-label="No games for sale yet"
-          :pagination="{rowsPerPage: 0}"
-          :binary-state-sort="true"
+          :pagination.sync="gameLinksTable.pagination"
+          no-data-label="No games available"
         >
           <template v-slot:header="props">
             <q-tr :props="props">
