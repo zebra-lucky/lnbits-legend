@@ -79,12 +79,11 @@ async def api_add_or_update_game(
             status_code=HTTPStatus.BAD_REQUEST,
             detail="Failed to get game",
         )
-    print(game)
     return game
 
 
 @eightball_ext.delete("/api/v1/eightball/games/{game_id}")
 async def api_delete_game(game_id, wallet: WalletTypeInfo = Depends(get_key_type)):
 
-    await delete_game(game_id)
+    return await delete_game(game_id)
     raise HTTPException(status_code=HTTPStatus.NO_CONTENT)

@@ -4,16 +4,19 @@ Vue.component(VueQrcode.name, VueQrcode)
 
 const pica = window.pica()
 
+var locationPath = [
+  window.location.protocol,
+  '//',
+  window.location.host,
+  window.location.pathname
+].join('')
+
 var mapGameLink = obj => {
   obj._data = _.clone(obj)
   console.log(obj._data)
-  obj.date = Quasar.utils.date.formatDate(
-    new Date(obj.time * 1000),
-    'YYYY-MM-DD HH:mm'
-  )
   obj.print_url = [locationPath, 'print/', obj.id].join('')
   obj.pay_url = [locationPath, obj.id].join('')
-  console.log(obj)
+  console.log(obj.print_url)
   return obj
 }
 
@@ -79,15 +82,15 @@ new Vue({
           this.g.user.wallets[0].adminkey
         )
         .then(response => {
-          console.log(response.data)
-          this.gameLinks.push(mapGameLink(response.data))
+          //console.log(response.data)
+          this.gameLinks = response.data.map(mapGameLink)
         })
         .catch(err => {
           LNbits.utils.notifyApiError(err)
         })
     },
     sendGame() {
-      console.log(this.gameDialog.data)
+      
       if (!this.gameDialog.data.wallet){
         this.gameDialog.data.wallet = this.g.user.wallets[0].id
       }
@@ -100,7 +103,7 @@ new Vue({
           )
           .then(response => {
             console.log(mapGameLink(response.data))
-            this.gameLinks.push(mapGameLink(response.data))
+            this.gameLinks = response.data.map(mapGameLink)
             this.gameDialog.show = false
             this.$q.notify({
               message: `Game '${this.gameDialog.data.name}' added.`,
@@ -110,7 +113,6 @@ new Vue({
          .catch(err => {
           LNbits.utils.notifyApiError(err)
         })
-      this.loadgames()
       this.gameDialog.show = false
     },
     deleteGame(gameId) {
@@ -128,10 +130,7 @@ new Vue({
                 message: `Game deleted.`,
                 timeout: 700
               })
-              this.gameLinks = _.reject(
-                this.gameLinks,
-                obj => obj.id === linkId
-              )
+              this.gameLinks = response.data.map(mapGameLink)
             })
             .catch(err => {
               LNbits.utils.notifyApiError(err)

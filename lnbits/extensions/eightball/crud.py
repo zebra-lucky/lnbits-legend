@@ -16,14 +16,14 @@ async def add_game(
     wordlist: str,
 ) -> int:
     game_id = urlsafe_short_hash()
-    result = await db.execute(
+    await db.execute(
         """
         INSERT INTO eightball.games (id, name, description, user, wallet, price, wordlist)
         VALUES (?, ?, ?, ?, ?, ?, ?)
         """,
         (game_id, name, description, user, wallet, price, wordlist),
     )
-    return result
+    return await get_games(user)
 
 
 async def get_game(id: str) -> Optional[game]:
@@ -37,9 +37,11 @@ async def get_games(user: str) -> List[game]:
 
 
 async def delete_game(game_id: str):
-    await db.execute(
+    result = await db.execute(
         """
         DELETE FROM eightball.games WHERE id = ?
         """,
         (game_id),
     )
+    game = await get_game(game_id)
+    return await get_games(game.user)
