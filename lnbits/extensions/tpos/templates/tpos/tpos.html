@@ -283,6 +283,49 @@
           dialog.dismissMsg()
         }, 3000)
       },
+      readNFC: function () {
+        const ndef = new NDEFReader()
+        ndef
+          .scan()
+          .then(() => {
+            console.log('Scan started successfully.')
+            ndef.onreadingerror = () => {
+              console.log('Cannot read data from the NFC tag. Try another one?')
+            }
+            ndef.onreading = event => {
+              const message = event.message
+              for (const record of message.records) {
+                console.log('Record type:  ' + record.recordType)
+                console.log('MIME type:    ' + record.mediaType)
+                console.log('Record id:    ' + record.id)
+                switch (record.recordType) {
+                  case 'text':
+                    // TODO: Read text record with record data, lang, and encoding.
+                    break
+                  case 'url':
+                    // TODO: Read URL record with record data.
+                    break
+                  default:
+                  // TODO: Handle other records with record data.
+                }
+              }
+            }
+          })
+          .catch(error => {
+            console.log(`Error! Scan failed to start: ${error}.`)
+          })
+      },
+      writeNTC: function () {
+        const ndef = new NDEFReader()
+        ndef
+          .write(this.invoiceDialog.data.payment_request)
+          .then(() => {
+            console.log('Message written.')
+          })
+          .catch(error => {
+            console.log(`Write failed :-( try again: ${error}.`)
+          })
+      },
       showInvoice: function () {
         var self = this
         var dialog = this.invoiceDialog
@@ -296,6 +339,7 @@
           .then(function (response) {
             dialog.data = response.data
             dialog.show = true
+            
 
             dialog.dismissMsg = self.$q.notify({
               timeout: 0,
@@ -322,6 +366,11 @@
                     }, 5000)
                   }
                 })
+                if ('NDEFReader' in window) { 
+                  this.readNFC
+                  this.writeNFC
+                }
+                
             }, 3000)
           })
           .catch(function (error) {
