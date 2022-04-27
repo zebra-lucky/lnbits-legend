@@ -40,13 +40,7 @@
             >
           </q-toolbar-title>
           {% block beta %}
-          <q-badge color="yellow" text-color="black" class="q-mr-md">
-            <span
-              ><span v-show="$q.screen.gt.sm"
-                >USE WITH CAUTION - {{SITE_TITLE}} wallet is still in </span
-              >BETA</span
-            >
-          </q-badge>
+          
           {% endblock %}
           <q-btn-dropdown
             v-if="g.allowedThemes && g.allowedThemes.length > 1"
