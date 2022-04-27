@@ -7,30 +7,21 @@
 {% block title %}  {{ SITE_TITLE }} {% endblock %}
 <!---->
 {% block page %}
+
+<q-tabs
+class="lt-md fixed-bottom left-0 right-0 bg-primary text-white shadow-2 z-max"
+active-class="px-0"
+indicator-color="transparent"
+>
+<q-tab icon="content_paste" label="Paste" @click="showParseDialog"> </q-tab>
+<q-tab icon="file_download" label="Receive" @click="showReceiveDialog">
+</q-tab>
+
+<q-tab icon="photo_camera" label="Scan" @click="showCamera"> </q-tab>
+</q-tabs>
+
+
 <div class="row q-col-gutter-lg q-pb-lg">
-  <div class="col-12 col-md-4 q-gutter-y-md">
-    <q-card>
-      <q-card-section>
-        <div class="text-overline text-primary">Total</div>
-        <h6 class="text-h2 q-my-none">
-          8,752,000 sats
-        </h6>
-      </q-card-section>
-
-    </q-card>
-  </div>
-
-  <div class="col-12 col-md-4 q-gutter-y-md">
-    <q-card>
-      <q-card-section>
-        <div class="text-overline text-primary">Onchain Confirmed</div>
-        <h6 class="text-h2 q-my-none">
-          2,452,278 sats
-        </h6>
-      </q-card-section>
-
-    </q-card>
-  </div>
 
   <div class="col-12 col-md-4 q-gutter-y-md">
     <q-card>
