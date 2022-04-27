@@ -28,48 +28,109 @@ Vue.component('lnbits-wallet-list', {
   },
   template: `
     <q-list v-if="user && user.wallets.length" dense class="lnbits-drawer__q-list">
-      <q-item-label header>Wallets</q-item-label>
-      <q-item v-for="wallet in wallets" :key="wallet.id"
-        clickable
-        :active="activeWallet && activeWallet.id === wallet.id"
-        tag="a" :href="wallet.url">
-        <q-item-section side>
-          <q-avatar size="md"
-            :color="(activeWallet && activeWallet.id === wallet.id)
-              ? (($q.dark.isActive) ? 'primary' : 'primary')
-              : 'grey-5'">
-            <q-icon name="flash_on" :size="($q.dark.isActive) ? '21px' : '20px'"
-              :color="($q.dark.isActive) ? 'blue-grey-10' : 'grey-3'"></q-icon>
-          </q-avatar>
-        </q-item-section>
-        <q-item-section>
-          <q-item-label lines="1">{{ wallet.name }}</q-item-label>
-          <q-item-label v-if="LNBITS_DENOMINATION != 'sats'" caption>{{ parseFloat(String(wallet.live_fsat).replaceAll(",", "")) / 100  }} {{ LNBITS_DENOMINATION }}</q-item-label>
-          <q-item-label v-else caption>{{ wallet.live_fsat }} {{ LNBITS_DENOMINATION }}</q-item-label>
-        </q-item-section>
-        <q-item-section side v-show="activeWallet && activeWallet.id === wallet.id">
-          <q-icon name="chevron_right" color="grey-5" size="md"></q-icon>
-        </q-item-section>
-      </q-item>
-      <q-item clickable @click="showForm = !showForm">
-        <q-item-section side>
-          <q-icon :name="(showForm) ? 'remove' : 'add'" color="grey-5" size="md"></q-icon>
-        </q-item-section>
-        <q-item-section>
-          <q-item-label lines="1" class="text-caption">Add a wallet</q-item-label>
-        </q-item-section>
-      </q-item>
-      <q-item v-if="showForm">
-        <q-item-section>
-          <q-form @submit="createWallet">
-            <q-input filled dense v-model="walletName" label="Name wallet *">
-              <template v-slot:append>
-                <q-btn round dense flat icon="send" size="sm" @click="createWallet" :disable="walletName === ''"></q-btn>
-              </template>
-            </q-input>
-          </q-form>
-        </q-item-section>
-      </q-item>
+
+    <q-item clickable tag="a" :href="['/dashboard?usr=', user.id].join('')">
+    <q-item-section side>
+      <q-icon name="dashboard" color="grey-5" size="md"></q-icon>
+    </q-item-section>
+    <q-item-section>
+      <q-item-label lines="1" class="text-caption">Dashboard</q-item-label>
+    </q-item-section>
+  </q-item>
+
+  <q-item clickable tag="a" :href="['/transactions?usr=', user.id].join('')">
+  <q-item-section side>
+    <q-icon name="account_balance" color="grey-5" size="md"></q-icon>
+  </q-item-section>
+  <q-item-section>
+    <q-item-label lines="1" class="text-caption">Node Transactions</q-item-label>
+  </q-item-section>
+</q-item>
+
+
+<q-item clickable tag="a" :href="['/channels?usr=', user.id].join('')">
+<q-item-section side>
+  <q-icon name="sync_alt" color="grey-5" size="md"></q-icon>
+</q-item-section>
+<q-item-section>
+  <q-item-label lines="1" class="text-caption">Channels</q-item-label>
+</q-item-section>
+</q-item>
+
+
+<q-item clickable tag="a" :href="['/apps?usr=', user.id].join('')">
+<q-item-section side>
+  <q-icon name="apps" color="grey-5" size="md"></q-icon>
+</q-item-section>
+<q-item-section>
+  <q-item-label lines="1" class="text-caption">Apps</q-item-label>
+</q-item-section>
+</q-item>
+
+<q-separator></q-separator>
+
+<q-item clickable tag="a" :href="['/wallet?usr=', user.id].join('')">
+<q-item-section side>
+  <q-icon name="account_balance_wallet" color="grey-5" size="md"></q-icon>
+</q-item-section>
+<q-item-section>
+  <q-item-label lines="1" class="text-caption">Wallets</q-item-label>
+</q-item-section>
+</q-item>
+
+<div  v-show="isWallet">
+<q-item v-for="wallet in wallets" :key="wallet.id"
+  clickable
+  :active="activeWallet && activeWallet.id === wallet.id"
+  tag="a" :href="wallet.url">
+  <q-item-section side>
+    <q-avatar size="md"
+      :color="(activeWallet && activeWallet.id === wallet.id)
+        ? (($q.dark.isActive) ? 'primary' : 'primary')
+        : 'grey-5'">
+      <q-icon name="flash_on" :size="($q.dark.isActive) ? '21px' : '20px'"
+        :color="($q.dark.isActive) ? 'blue-grey-10' : 'grey-3'"></q-icon>
+    </q-avatar>
+  </q-item-section>
+  <q-item-section>
+    <q-item-label lines="1">{{ wallet.name }}</q-item-label>
+    <q-item-label v-if="LNBITS_DENOMINATION != 'sats'" caption>{{ parseFloat(String(wallet.live_fsat).replaceAll(",", "")) / 100  }} {{ LNBITS_DENOMINATION }}</q-item-label>
+    <q-item-label v-else caption>{{ wallet.live_fsat }} {{ LNBITS_DENOMINATION }}</q-item-label>
+  </q-item-section>
+  <q-item-section side v-show="activeWallet && activeWallet.id === wallet.id">
+    <q-icon name="chevron_right" color="grey-5" size="md"></q-icon>
+  </q-item-section>
+</q-item>
+<q-item clickable @click="showForm = !showForm">
+  <q-item-section side>
+    <q-icon :name="(showForm) ? 'remove' : 'add'" color="grey-5" size="md"></q-icon>
+  </q-item-section>
+  <q-item-section>
+    <q-item-label lines="1" class="text-caption">Add a wallet</q-item-label>
+  </q-item-section>
+</q-item>
+<q-item v-if="showForm">
+  <q-item-section>
+    <q-form @submit="createWallet">
+      <q-input filled dense v-model="walletName" label="Name wallet *">
+        <template v-slot:append>
+          <q-btn round dense flat icon="send" size="sm" @click="createWallet" :disable="walletName === ''"></q-btn>
+        </template>
+      </q-input>
+    </q-form>
+  </q-item-section>
+</q-item>
+</div>
+
+<q-item clickable tag="a" :href="['/extensions?usr=', user.id].join('')">
+<q-item-section side>
+  <q-icon name="clear_all" color="grey-5" size="md"></q-icon>
+</q-item-section>
+<q-item-section>
+  <q-item-label lines="1" class="text-caption">Extensions</q-item-label>
+</q-item-section>
+</q-item>
+
     </q-list>
   `,
   computed: {
@@ -82,9 +143,15 @@ Vue.component('lnbits-wallet-list', {
             : obj.fsat
         return obj
       })
+    },
+    isWallet: function () {
+      if (window.location.href.indexOf("wallet") != -1){
+        return true
+      }
     }
   },
   methods: {
+    
     createWallet: function () {
       LNbits.href.createWallet(this.walletName, this.user.id)
     },
@@ -111,38 +178,31 @@ Vue.component('lnbits-extension-list', {
     }
   },
   template: `
-    <q-list v-if="user && extensions.length" dense class="lnbits-drawer__q-list">
-      <q-item-label header>Extensions</q-item-label>
-      <q-item v-for="extension in userExtensions" :key="extension.code"
-        clickable
-        :active="extension.isActive"
-        tag="a" :href="[extension.url, '?usr=', user.id].join('')">
-        <q-item-section side>
-          <q-avatar size="md"
-            :color="(extension.isActive)
-              ? (($q.dark.isActive) ? 'primary' : 'primary')
-              : 'grey-5'">
-            <q-icon :name="extension.icon" :size="($q.dark.isActive) ? '21px' : '20px'"
-              :color="($q.dark.isActive) ? 'blue-grey-10' : 'grey-3'"></q-icon>
-          </q-avatar>
-        </q-item-section>
-        <q-item-section>
-          <q-item-label lines="1">{{ extension.name }}</q-item-label>
-        </q-item-section>
-        <q-item-section side v-show="extension.isActive">
-          <q-icon name="chevron_right" color="grey-5" size="md"></q-icon>
-        </q-item-section>
-      </q-item>
-      <q-item clickable tag="a" :href="['/extensions?usr=', user.id].join('')">
-        <q-item-section side>
-          <q-icon name="clear_all" color="grey-5" size="md"></q-icon>
-        </q-item-section>
-        <q-item-section>
-          <q-item-label lines="1" class="text-caption">Manage extensions</q-item-label>
-        </q-item-section>
-      </q-item>
-    </q-list>
-  `,
+  <div  v-show="isExtension">
+  <q-list v-if="user && extensions.length" dense class="lnbits-drawer__q-list">
+    <q-item v-for="extension in userExtensions" :key="extension.code"
+      clickable
+      :active="extension.isActive"
+      tag="a" :href="[extension.url, '?usr=', user.id].join('')">
+      <q-item-section side>
+        <q-avatar size="md"
+          :color="(extension.isActive)
+            ? (($q.dark.isActive) ? 'primary' : 'primary')
+            : 'grey-5'">
+          <q-icon :name="extension.icon" :size="($q.dark.isActive) ? '21px' : '20px'"
+            :color="($q.dark.isActive) ? 'blue-grey-10' : 'grey-3'"></q-icon>
+        </q-avatar>
+      </q-item-section>
+      <q-item-section>
+        <q-item-label lines="1">{{ extension.name }}</q-item-label>
+      </q-item-section>
+      <q-item-section side v-show="extension.isActive">
+        <q-icon name="chevron_right" color="grey-5" size="md"></q-icon>
+      </q-item-section>
+    </q-item>
+  </q-list>
+  </div>
+`,
   computed: {
     userExtensions: function () {
       if (!this.user) return []
@@ -158,6 +218,11 @@ Vue.component('lnbits-extension-list', {
           obj.isActive = path.startsWith(obj.url)
           return obj
         })
+    },
+    isExtension: function () {
+      if (window.location.href.indexOf("extensions") != -1){
+        return true
+      }
     }
   },
   created: function () {

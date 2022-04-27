@@ -148,6 +148,72 @@ async def wallet(
     )
 
 
+@core_html_routes.get(
+    "/transactions",
+    response_class=HTMLResponse,
+    description="""
+Args:
+
+just **wallet_name**: create a new user, then create a new wallet for user with wallet_name<br>
+just **user_id**: return the first user wallet or create one if none found (with default wallet_name)<br>
+**user_id** and **wallet_name**: create a new wallet for user with wallet_name<br>
+**user_id** and **wallet_id**: return that wallet if user is the owner<br>
+nothing: create everything<br>
+""",
+)
+async def wallet(
+    request: Request = Query(None),
+    nme: Optional[str] = Query(None),
+    usr: Optional[UUID4] = Query(None),
+    wal: Optional[UUID4] = Query(None),
+):
+    user_id = usr.hex if usr else None
+    wallet_id = wal.hex if wal else None
+    wallet_name = nme
+    service_fee = int(SERVICE_FEE) if int(SERVICE_FEE) == SERVICE_FEE else SERVICE_FEE
+
+    if not user_id:
+        user = await get_user((await create_account()).id)
+    else:
+        user = await get_user(user_id)
+        if not user:
+            return template_renderer().TemplateResponse(
+                "error.html", {"request": request, "err": "User does not exist."}
+            )
+        if LNBITS_ALLOWED_USERS and user_id not in LNBITS_ALLOWED_USERS:
+            return template_renderer().TemplateResponse(
+                "error.html", {"request": request, "err": "User not authorized."}
+            )
+        if LNBITS_ADMIN_USERS and user_id in LNBITS_ADMIN_USERS:
+            user.admin = True
+    if not wallet_id:
+        if user.wallets and not wallet_name:
+            wallet = user.wallets[0]
+        else:
+            wallet = await create_wallet(user_id=user.id, wallet_name=wallet_name)
+
+        return RedirectResponse(
+            f"/dashboard?usr={user.id}&wal={wallet.id}",
+            status_code=status.HTTP_307_TEMPORARY_REDIRECT,
+        )
+
+    wallet = user.get_wallet(wallet_id)
+    if not wallet:
+        return template_renderer().TemplateResponse(
+            "error.html", {"request": request, "err": "Wallet not found"}
+        )
+
+    return template_renderer().TemplateResponse(
+        "core/transactions.html",
+        {
+            "request": request,
+            "user": user.dict(),
+            "wallet": wallet.dict(),
+            "service_fee": service_fee,
+        },
+    )
+
+
 @core_html_routes.get("/withdraw", response_class=JSONResponse)
 async def lnurl_full_withdraw(request: Request):
     user = await get_user(request.query_params.get("usr"))
