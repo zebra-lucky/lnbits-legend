@@ -42,6 +42,10 @@
           {% block beta %}
           
           {% endblock %}
+          <q-toggle
+        v-model="toggleSubs"
+        color="primary"
+          ><q-tooltip>Enable sub-wallets and extensions (doesnt work, but when it does the LNbits stuff will be disabled by default)</q-tooltip></q-toggle>
           <q-btn-dropdown
             v-if="g.allowedThemes && g.allowedThemes.length > 1"
             dense

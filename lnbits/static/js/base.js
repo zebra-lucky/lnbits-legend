@@ -314,6 +314,7 @@ window.LNbits = {
 window.windowMixin = {
   data: function () {
     return {
+      toggleSubs: true,
       g: {
         visibleDrawer: false,
         extensions: [],
