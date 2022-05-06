@@ -1,4 +1,4 @@
-.PHONY: test
+.PHONY: test runserver
 
 all: format check requirements.txt
 
@@ -82,3 +82,6 @@ migration:
 
 bak:
 	# LNBITS_DATABASE_URL=postgres://postgres:postgres@0.0.0.0:5432/postgres
+
+runserver:
+	./venv/bin/uvicorn lnbits.__main__:app --port 5000 --reload
