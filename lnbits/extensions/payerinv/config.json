@@ -1,0 +1,8 @@
+{
+  "name": "PayerInv",
+  "short_description": "Allow payers create invoices",
+  "icon": "receipt",
+  "contributors": [
+    "test1"
+  ]
+}

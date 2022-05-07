@@ -1,0 +1,196 @@
+{% extends "base.html" %}{% from "macros.jinja" import window_vars with context
+%}{% block page %}
+<div class="row q-col-gutter-md">
+  <div class="col-12 col-md-7 q-gutter-y-md">
+    <q-card>
+      <q-card-section>
+        <q-btn unelevated color="primary" @click="formDialog.show = true"
+          >New pay link</q-btn
+        >
+      </q-card-section>
+    </q-card>
+
+    <q-card>
+      <q-card-section>
+        <div class="row items-center no-wrap q-mb-md">
+          <div class="col">
+            <h5 class="text-subtitle1 q-my-none">Pay links</h5>
+          </div>
+        </div>
+        <q-table
+          dense
+          flat
+          :data="payLinks"
+          row-key="id"
+          :pagination.sync="payLinksTable.pagination"
+        >
+          {% raw %}
+          <template v-slot:header="props">
+            <q-tr :props="props">
+              <q-th auto-width></q-th>
+              <q-th auto-width>Description</q-th>
+              <q-th auto-width>Amount</q-th>
+              <q-th auto-width>Currency</q-th>
+              <q-th auto-width></q-th>
+            </q-tr>
+          </template>
+          <template v-slot:body="props">
+            <q-tr :props="props">
+              <q-td auto-width>
+                <q-btn
+                  unelevated
+                  dense
+                  size="xs"
+                  icon="launch"
+                  :color="($q.dark.isActive) ? 'grey-7' : 'grey-5'"
+                  type="a"
+                  :href="props.row.pay_url"
+                  target="_blank"
+                ></q-btn>
+              </q-td>
+              <q-td auto-width>{{ props.row.description }}</q-td>
+              <q-td auto-width>
+                <span v-if="props.row.min == props.row.max">
+                  {{ props.row.min }}
+                </span>
+                <span v-else>{{ props.row.min }} - {{ props.row.max }}</span>
+              </q-td>
+              <q-td>{{ props.row.currency || 'sat' }}</q-td>
+              <q-td auto-width>
+                <q-btn
+                  flat
+                  dense
+                  size="xs"
+                  @click="openUpdateDialog(props.row.id)"
+                  icon="edit"
+                  color="light-blue"
+                ></q-btn>
+                <q-btn
+                  flat
+                  dense
+                  size="xs"
+                  @click="deletePayLink(props.row.id)"
+                  icon="cancel"
+                  color="pink"
+                ></q-btn>
+              </q-td>
+            </q-tr>
+          </template>
+          {% endraw %}
+        </q-table>
+      </q-card-section>
+    </q-card>
+  </div>
+
+  <div class="col-12 col-md-5 q-gutter-y-md">
+    <q-card>
+      <q-card-section>
+        <h6 class="text-subtitle1 q-my-none">
+          {{SITE_TITLE}} PayerInv extension
+        </h6>
+      </q-card-section>
+      <q-card-section class="q-pa-none">
+        <q-separator></q-separator>
+        <q-list>
+          {% include "payerinv/_api_docs.html" %}
+          <q-separator></q-separator>
+          {% include "payerinv/_payerinv.html" %}
+        </q-list>
+      </q-card-section>
+    </q-card>
+  </div>
+
+  <q-dialog v-model="formDialog.show" @hide="closeFormDialog">
+    <q-card class="q-pa-lg q-pt-xl lnbits__dialog-card">
+      <q-form @submit="sendFormData" class="q-gutter-md">
+        <q-select
+          filled
+          dense
+          emit-value
+          v-model="formDialog.data.wallet"
+          :options="g.user.walletOptions"
+          label="Wallet *"
+        >
+        </q-select>
+        <q-input
+          filled
+          dense
+          v-model.trim="formDialog.data.description"
+          type="text"
+          label="Item description *"
+        ></q-input>
+        <div class="row q-col-gutter-sm">
+          <q-input
+            filled
+            dense
+            v-model.number="formDialog.data.min"
+            type="number"
+            :step="formDialog.data.currency && formDialog.data.currency !== 'satoshis' ? '0.01' : '1'"
+            :label="formDialog.fixedAmount ? 'Amount *' : 'Min *'"
+          ></q-input>
+          <q-input
+            v-if="!formDialog.fixedAmount"
+            filled
+            dense
+            v-model.number="formDialog.data.max"
+            type="number"
+            :step="formDialog.data.currency && formDialog.data.currency !== 'satoshis' ? '0.01' : '1'"
+            label="Max *"
+          ></q-input>
+        </div>
+        <div class="row q-col-gutter-sm">
+          <div class="col">
+            <q-checkbox
+              dense
+              disabled
+              v-model="formDialog.fixedAmount"
+              label="Fixed amount"
+            />
+          </div>
+          <div class="col">
+            <q-select
+              dense
+              :options="currencies"
+              v-model="formDialog.data.currency"
+              :display-value="formDialog.data.currency || 'satoshis'"
+              label="Currency"
+              :hint="'Amounts will be converted at use-time to satoshis. ' + (formDialog.data.currency && fiatRates[formDialog.data.currency] ? `Currently 1 ${formDialog.data.currency} = ${fiatRates[formDialog.data.currency]} sat` : '')"
+              @input="updateFiatRate"
+            />
+          </div>
+        </div>
+        <div class="row q-mt-lg">
+          <q-btn
+            v-if="formDialog.data.id"
+            unelevated
+            color="primary"
+            type="submit"
+            >Update pay link</q-btn
+          >
+          <q-btn
+            v-else
+            unelevated
+            color="primary"
+            :disable="
+                formDialog.data.wallet == null ||
+                formDialog.data.description == null ||
+                (
+                  formDialog.data.min == null ||
+                  formDialog.data.min <= 0
+                )
+                "
+            type="submit"
+            >Create pay link</q-btn
+          >
+          <q-btn v-close-popup flat color="grey" class="q-ml-auto"
+            >Cancel</q-btn
+          >
+        </div>
+      </q-form>
+    </q-card>
+  </q-dialog>
+
+</div>
+{% endblock %} {% block scripts %} {{ window_vars(user) }}
+<script src="/payerinv/static/js/index.js"></script>
+{% endblock %}
