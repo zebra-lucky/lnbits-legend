@@ -1,0 +1,132 @@
+{% extends "public.html" %} {% block page %}
+<div class="row q-col-gutter-md justify-center">
+  <div class="col-12 col-sm-6 col-md-5 col-lg-4">
+    <q-card class="q-pa-lg">
+      <b>Create lightning invoice</b>
+      <q-card-section class="q-pa-none">
+        <div class="q-py-md" style="text-align: left">
+          <div class="row">
+            <div class="col-3"><b>Description</b>:</div>
+            <div class="col-9">{{ payerinv.description }}</div>
+          </div>
+          <div class="row">
+            <div class="col-3"><b>Amount</b>:</div>
+            <div class="col-9">{{ payerinv.amount }} {{ payerinv.currency if payerinv.currency else LNBITS_DENOMINATION }}</div>
+          </div>
+        </div>
+        <div class="q-py-md" style="text-align: left">
+          <div class="row items-center">
+            <div class="col-3"><b>Captcha</b>:</div>
+            <div class="col-9">
+              {% raw %}
+              <img :src="captchaB64"></img>
+              <q-btn
+                flat
+                round
+                color="primary"
+                icon="refresh"
+                size="md"
+                @click="generateCaptcha()"
+              >
+              {% endraw %}
+            </div>
+          </div>
+          <div class="row items-center">
+            <div class="col-3 "><b>Captcha guess</b>:</div>
+            <div class="col-9">
+              <q-input
+                v-model="captchaGuess"
+                v-on:keyup.enter="createInvoice"
+                filled
+                class="q-pt-md"
+                dense
+              ></q-input>
+            </div>
+          </div>
+        </div>
+        <div class="row q-mt-lg">
+          <q-btn outline color="grey" @click="createInvoice()"
+            >Create Lightning Invoice</q-btn
+          >
+        </div>
+      </q-card-section>
+    </q-card>
+
+    <q-dialog v-model="invDlg.show">
+      <q-card class="q-pa-lg q-pt-xl lnbits__dialog-card">
+        <div class="text-center q-mb-lg">
+          <div>
+            <q-icon name="settings_ethernet" color="grey"></q-icon>
+            Invoice waiting to be paid
+            <div class="q-py-md" style="text-align: left">
+              {% raw %}
+              <div class="row">
+                <div class="col-3"><b>Date</b>:</div>
+                  <div class="col-9">{{ invDlg.invoice.date }}</div>
+              </div>
+              <div class="row">
+                <div class="col-3"><b>Expire date</b>:</div>
+                <div class="col-9">{{ invDlg.invoice.expireDate }}</div>
+              </div>
+              <div class="row">
+                <div class="col-3"><b>Description</b>:</div>
+                <div class="col-9">{{ invDlg.invoice.memo }}</div>
+              </div>
+              <div class="row">
+                <div class="col-3"><b>Amount</b>:</div>
+                <div class="col-9">{{ (invDlg.invoice.amount / 1000).toFixed(3) }} {{ LNBITS_DENOMINATION }}</div>
+              </div>
+              <div class="row">
+                <div class="col-3"><b>Payment hash</b>:</div>
+                <div class="col-9 text-wrap mono">{{ invDlg.invoice.payment_hash }}</div>
+              </div>
+              {% endraw %}
+            </div>
+            <div v-if="invDlg.invoice.bolt11" class="text-center q-mb-lg">
+              <a :href="'lightning:' + invDlg.invoice.bolt11">
+                <q-responsive :ratio="1" class="q-mx-xl">
+                  <qrcode
+                    :value="invDlg.invoice.bolt11"
+                    :options="{width: 340}"
+                    class="rounded-borders"
+                  ></qrcode>
+                </q-responsive>
+              </a>
+            </div>
+            <div class="row q-mt-lg">
+              <q-btn
+                outline
+                color="grey"
+                @click="copyText(invDlg.invoice.bolt11)"
+                >Copy invoice</q-btn
+              >
+              <q-btn v-close-popup flat color="grey" class="q-ml-auto"
+                >Close</q-btn
+              >
+            </div>
+          </div>
+        </div>
+      </q-card>
+    </q-dialog>
+
+  </div>
+  <div class="col-12 col-sm-6 col-md-5 col-lg-4 q-gutter-y-md">
+    <q-card>
+      <q-card-section>
+        <h6 class="text-subtitle1 q-mb-sm q-mt-none">LNbits PayerInv link</h6>
+      </q-card-section>
+      <q-card-section class="q-pa-none">
+        <q-separator></q-separator>
+        <q-list> {% include "payerinv/_payerinv.html" %} </q-list>
+      </q-card-section>
+    </q-card>
+  </div>
+</div>
+{% endblock %} {% block scripts %}
+<script>
+  linkId = "{{ payerinv.id }}"
+  captchaB64 = "{{ payerinv.captcha_b64 }}"
+  captchaUuid = "{{ payerinv.captcha_uuid }}"
+</script>
+<script src="/payerinv/static/js/display.js"></script>
+{% endblock %}
