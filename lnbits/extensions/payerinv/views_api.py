@@ -154,7 +154,7 @@ async def api_generate_captcha():
 
 @payerinv_ext.post("/api/v1/captcha/{captcha_uuid}", status_code=HTTPStatus.OK)
 async def api_check_captcha(captcha_uuid, captcha_guess):
-    return verify_captcha(captcha_uuid, captcha_guess.strip())
+    return verify_captcha(captcha_uuid, captcha_guess)
 
 
 @payerinv_ext.post("/api/v1/links/{link_id}/inv", status_code=HTTPStatus.OK)
