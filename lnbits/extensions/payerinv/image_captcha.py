@@ -58,7 +58,7 @@ def verify_captcha(captcha_uuid, captcha_guess):
     if captcha_time + CAPTCHA_TIMEOUT < time.time():
         return {"correct": False, 'error': 'Captcha is timeouted'}
 
-    return {"correct": captcha_text == captcha_guess}
+    return {"correct": captcha_text == captcha_guess.strip()}
 
 
 def clear_old_captcha():
